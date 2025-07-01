@@ -1,0 +1,176 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Documentação da API - Contateiros",
+        "description": "Documentação gerada com L5 Swagger",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api/",
+            "description": "Servidor local"
+        }
+    ],
+    "paths": {
+        "/api/usuario": {
+            "post": {
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Cria um novo usuário",
+                "operationId": "ac5cce9f3789a6701b6f22e24e58e9ac",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nome",
+                                    "usuario",
+                                    "email",
+                                    "telefone",
+                                    "id_funcao",
+                                    "id_secao",
+                                    "ativo"
+                                ],
+                                "properties": {
+                                    "nome": {
+                                        "type": "string"
+                                    },
+                                    "usuario": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "telefone": {
+                                        "type": "string"
+                                    },
+                                    "id_funcao": {
+                                        "type": "integer"
+                                    },
+                                    "id_secao": {
+                                        "type": "integer"
+                                    },
+                                    "ativo": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuário criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "usuario": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "nome": {
+                                                    "type": "string"
+                                                },
+                                                "usuario": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "telefone": {
+                                                    "type": "string"
+                                                },
+                                                "id_funcao": {
+                                                    "type": "integer"
+                                                },
+                                                "id_secao": {
+                                                    "type": "integer"
+                                                },
+                                                "ativo": {
+                                                    "type": "boolean"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "requestBodies": {
+            "UsuarioController": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "required": [
+                                "nome",
+                                "usuario",
+                                "email",
+                                "telefone",
+                                "id_funcao",
+                                "id_secao",
+                                "ativo"
+                            ],
+                            "properties": {
+                                "nome": {
+                                    "type": "string"
+                                },
+                                "usuario": {
+                                    "type": "string"
+                                },
+                                "email": {
+                                    "type": "string"
+                                },
+                                "telefone": {
+                                    "type": "string"
+                                },
+                                "id_funcao": {
+                                    "type": "integer"
+                                },
+                                "id_secao": {
+                                    "type": "integer"
+                                },
+                                "ativo": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Usuario",
+            "description": "Usuario"
+        }
+    ]
+}
