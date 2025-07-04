@@ -9,3 +9,4 @@ Route::get("/funcao", [FuncaoController::class, "index"]);
 Route::get("/secao" , [SecaoController::class , "index"]);
 
 Route::post("/usuario", [UsuarioController::class, "store"]);
+Route::get("/usuario" , [UsuarioController::class, "index"]);

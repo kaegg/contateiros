@@ -1,7 +1,7 @@
 <template>
   <header class="bg-white border-b shadow-sm px-6 py-4 flex items-center justify-between" id="headerExt">
     <!-- Esquerda: Logo e título -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 cursor-pointer" @click="$router.push({ name: 'home' })">
       <span class="font-semibold text-2xl" id="logo">Contateiros</span>
     </div>
 

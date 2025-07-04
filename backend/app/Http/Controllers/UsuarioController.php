@@ -6,6 +6,7 @@ use App\Models\Usuario;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreUsuarioRequest;
 use OpenApi\Annotations as OA;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Post(
@@ -57,7 +58,20 @@ class UsuarioController extends Controller
      */
     public function index()
     {
-        //
+        $usuarios = Usuario::all();
+
+        if ($usuarios->isEmpty()) {
+            
+            return response()->json([
+                "success" => false,
+                "message" => "Nenhum usuário encontrada."
+            ], 404);
+        }
+
+        return response()->json([
+            "success" => true,
+            "usuarios"  => $usuarios
+        ]);
     }
 
     /**
@@ -73,6 +87,8 @@ class UsuarioController extends Controller
      */
     public function store(StoreUsuarioRequest $request)
     {
+        // Log::info("Request" + $request->all());
+
         $validated = $request->validated();
 
         $usuario = Usuario::create([
