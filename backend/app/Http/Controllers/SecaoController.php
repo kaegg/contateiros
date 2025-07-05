@@ -5,6 +5,41 @@ namespace App\Http\Controllers;
 use App\Models\Secao;
 use Illuminate\Http\Request;
 
+/** @OA\Get(
+ *     path="/api/secao",
+ *     tags={"Seção"},
+ *     summary="Lista todas as seções ativas",
+ *     description="Retorna todas as seções cadastradas que estão ativas.",
+ *     @OA\Response(
+ *         response=200,
+ *         description="Seções ativas encontradas",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(
+ *                 property="secoes",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", example=1),
+ *                     @OA\Property(property="nome", type="string", example="Seção 1"),
+ *                     @OA\Property(property="ativo", type="boolean", example=true),
+ *                     @OA\Property(property="created_at", type="string", format="date-time", example="2025-07-01T03:13:59.000000Z"),
+ *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2025-07-01T03:13:59.000000Z")
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Nenhuma seção encontrada",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Nenhuma seção encontrada.")
+ *         )
+ *     )
+ * )
+ */
+
 class SecaoController extends Controller
 {
     /**
@@ -12,7 +47,7 @@ class SecaoController extends Controller
      */
     public function index()
     {
-        $secoes = Secao::all();
+        $secoes = Secao::where('ativo', true)->get();
 
         if ($secoes->isEmpty()) {
             

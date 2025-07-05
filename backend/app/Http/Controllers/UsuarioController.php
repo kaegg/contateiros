@@ -9,9 +9,47 @@ use OpenApi\Annotations as OA;
 use Illuminate\Support\Facades\Log;
 
 /**
+ * @OA\Get(
+ *     path="/api/usuario",
+ *     tags={"Usuário"},
+ *     summary="Lista todos os usuários",
+ *     description="Retorna todos os usuários cadastrados no sistema.",
+ *     @OA\Response(
+ *         response=200,
+ *         description="Usuários encontrados",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(
+ *                 property="usuarios",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", example=1),
+ *                     @OA\Property(property="nome", type="string", example="teste"),
+ *                     @OA\Property(property="usuario", type="string", example="teste"),
+ *                     @OA\Property(property="email", type="string", example="teste@teste.com"),
+ *                     @OA\Property(property="telefone", type="string", example="+5544991087686"),
+ *                     @OA\Property(property="id_funcao", type="integer", example=1),
+ *                     @OA\Property(property="id_secao", type="integer", example=1),
+ *                     @OA\Property(property="ativo", type="boolean", example=true),
+ *                     @OA\Property(property="created_at", type="string", format="date-time", example="2025-07-01T03:14:07.000000Z"),
+ *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2025-07-01T03:14:07.000000Z")
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Nenhum usuário encontrado",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Nenhum usuário encontrada.")
+ *         )
+ *     )
+ * )
  * @OA\Post(
  *     path="/api/usuario",
- *     tags={"Usuario"},
+ *     tags={"Usuário"},
  *     summary="Cria um novo usuário",
  *     requestBody=@OA\RequestBody(
  *         required=true,
@@ -58,7 +96,7 @@ class UsuarioController extends Controller
      */
     public function index()
     {
-        $usuarios = Usuario::all();
+        $usuarios = Usuario::with(['funcao', 'secao'])->get();
 
         if ($usuarios->isEmpty()) {
             
@@ -87,8 +125,6 @@ class UsuarioController extends Controller
      */
     public function store(StoreUsuarioRequest $request)
     {
-        // Log::info("Request" + $request->all());
-
         $validated = $request->validated();
 
         $usuario = Usuario::create([

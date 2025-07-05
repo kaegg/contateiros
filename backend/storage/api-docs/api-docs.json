@@ -12,10 +12,262 @@
         }
     ],
     "paths": {
+        "/api/funcao": {
+            "get": {
+                "tags": [
+                    "Função"
+                ],
+                "summary": "Lista todas as funções ativas",
+                "description": "Retorna todas as funções cadastradas que estão ativas.",
+                "operationId": "d1630376309ead34546de38ed7af7d26",
+                "responses": {
+                    "200": {
+                        "description": "Funções ativas encontradas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "funcoes": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nome": {
+                                                        "type": "string",
+                                                        "example": "Diretor"
+                                                    },
+                                                    "ativo": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-01T03:13:59.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-01T03:13:59.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma função encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Nenhuma função encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/secao": {
+            "get": {
+                "tags": [
+                    "Seção"
+                ],
+                "summary": "Lista todas as seções ativas",
+                "description": "Retorna todas as seções cadastradas que estão ativas.",
+                "operationId": "1a1d8fc66ff7493ee544b09b7d3e09bf",
+                "responses": {
+                    "200": {
+                        "description": "Seções ativas encontradas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "secoes": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nome": {
+                                                        "type": "string",
+                                                        "example": "Seção 1"
+                                                    },
+                                                    "ativo": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-01T03:13:59.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-01T03:13:59.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma seção encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Nenhuma seção encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/usuario": {
+            "get": {
+                "tags": [
+                    "Usuário"
+                ],
+                "summary": "Lista todos os usuários",
+                "description": "Retorna todos os usuários cadastrados no sistema.",
+                "operationId": "974e17e11effd01817c102768172d2c8",
+                "responses": {
+                    "200": {
+                        "description": "Usuários encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "usuarios": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nome": {
+                                                        "type": "string",
+                                                        "example": "teste"
+                                                    },
+                                                    "usuario": {
+                                                        "type": "string",
+                                                        "example": "teste"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "teste@teste.com"
+                                                    },
+                                                    "telefone": {
+                                                        "type": "string",
+                                                        "example": "+5544991087686"
+                                                    },
+                                                    "id_funcao": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "id_secao": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "ativo": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-01T03:14:07.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-01T03:14:07.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum usuário encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Nenhum usuário encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "tags": [
-                    "Usuario"
+                    "Usuário"
                 ],
                 "summary": "Cria um novo usuário",
                 "operationId": "ac5cce9f3789a6701b6f22e24e58e9ac",
@@ -169,8 +421,16 @@
     },
     "tags": [
         {
-            "name": "Usuario",
-            "description": "Usuario"
+            "name": "Função",
+            "description": "Função"
+        },
+        {
+            "name": "Seção",
+            "description": "Seção"
+        },
+        {
+            "name": "Usuário",
+            "description": "Usuário"
         }
     ]
 }

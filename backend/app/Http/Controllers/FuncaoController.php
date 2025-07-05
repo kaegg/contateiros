@@ -6,6 +6,42 @@ use App\Models\Funcao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @OA\Get(
+ *     path="/api/funcao",
+ *     tags={"Função"},
+ *     summary="Lista todas as funções ativas",
+ *     description="Retorna todas as funções cadastradas que estão ativas.",
+ *     @OA\Response(
+ *         response=200,
+ *         description="Funções ativas encontradas",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(
+ *                 property="funcoes",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", example=1),
+ *                     @OA\Property(property="nome", type="string", example="Diretor"),
+ *                     @OA\Property(property="ativo", type="boolean", example=true),
+ *                     @OA\Property(property="created_at", type="string", format="date-time", example="2025-07-01T03:13:59.000000Z"),
+ *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2025-07-01T03:13:59.000000Z")
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Nenhuma função encontrada",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Nenhuma função encontrada.")
+ *         )
+ *     )
+ * )
+ */
+
 class FuncaoController extends Controller
 {
     /**
@@ -15,7 +51,7 @@ class FuncaoController extends Controller
     {
         // Log::info("Entrou na funcao index.");
 
-        $funcoes = Funcao::all();
+        $funcoes = Funcao::where('ativo', true)->get();
         
         if ($funcoes->isEmpty()) {
             

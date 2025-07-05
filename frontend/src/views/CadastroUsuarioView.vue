@@ -136,8 +136,8 @@
     nome    : '',
     email   : '',
     telefone: '',
-    funcao  : '',
-    secao   : ''
+    funcao  : null as null | { id: number, nome: string },
+    secao   : null as null | { id: number, nome: string }
   });
 
   onMounted(async () => {
@@ -203,8 +203,8 @@
         nome     : form.nome,
         email    : form.email,
         telefone : form.telefone.replace(/\D/g, ''),
-        id_funcao: form.funcao.id,
-        id_secao : form.secao.id,
+        id_funcao: form.funcao ? form.funcao.id : null,
+        id_secao : form.secao  ? form.secao.id  : null,
         ativo    : true
       }
       
@@ -220,16 +220,16 @@
         life    : 3000
       });
 
-    } catch (error) {
+    } catch (error:any) {
 
       if (error.response?.status === 422) {
 
         const backendErrors   = error.response.data.errors;
-        const errosFormulario = {};
+        const errosFormulario: { [key: string]: { message: string }[] } = {};
 
         for (const field in backendErrors) {
 
-          errosFormulario[field] = backendErrors[field].map((msg) => ({
+          errosFormulario[field] = backendErrors[field].map((msg: string) => ({
             message: msg
           }));
 
@@ -272,8 +272,8 @@
       form.nome     = "";
       form.email    = "";
       form.telefone = "";
-      form.funcao   = "";
-      form.secao    = "";
+      form.funcao   = null;
+      form.secao    = null;
 
     } catch (error) {
       

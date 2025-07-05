@@ -20,7 +20,7 @@ const router = createRouter({
     // },
     {
       path: "/cadastrar",
-      name: "CadastroUsuario",
+      name: "cadastroUsuario",
       component: CadastroUsuario,
     },
   ],
