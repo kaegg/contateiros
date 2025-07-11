@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('secao', function (Blueprint $table) {
             $table->id();
+            $table->string("codigo")->nullable(false);
             $table->string("nome"  )->nullable(false);
             $table->boolean("ativo")->nullable(false);
             $table->timestamps();

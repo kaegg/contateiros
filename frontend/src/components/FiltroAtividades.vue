@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref }  from 'vue'
 import Carousel from 'primevue/carousel'
 
@@ -47,7 +47,7 @@ const responsiveOptions = [
   { breakpoint: '560px',  numVisible: 1, numScroll: 1 }
 ]
 
-function selecionarFiltro(valor) {
+function selecionarFiltro(valor: any) {
   filtroSelecionado.value = valor
 }
 </script>

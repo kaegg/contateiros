@@ -97,7 +97,7 @@
       </div>
       
       <div class="flex justify-center mt-4">
-        <Button type="submit" label="Cadastrar" id="btCadastrar" class="w-40">
+        <Button type="submit" label="Cadastrar" class="w-40 btSalvar rounded-2xl!">
           <template #icon>
             <svg width="23" height="16" viewBox="0 0 23 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
               <path
@@ -299,13 +299,6 @@
   /* span.p-select-label{
     color: var(--color-black)!important;
   } */
-
-  #btCadastrar{
-    background-color: var(--btSalvar);
-    border-color: var(--btSalvar);
-    border-radius: 15px;
-    color: var(--color-white);
-  }
 
   /* .p-select-overlay{
     max-height: 100px!important;

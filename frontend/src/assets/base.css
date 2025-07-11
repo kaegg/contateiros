@@ -1,3 +1,18 @@
 :root{
     --btSalvar: #3E9957;
 }
+
+.btSalvar{
+    background-color: var(--btSalvar)!important;
+    color: white!important;
+    border-color: var(--btSalvar)!important;
+    /* padding: 0.5rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600; */
+}
+
+.btSalvar:hover{
+    background-color: #2e7a44!important;
+    color: white!important;
+    border-color: #2e7a44!important;
+}
