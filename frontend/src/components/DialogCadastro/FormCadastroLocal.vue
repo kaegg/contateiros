@@ -86,6 +86,24 @@
             </FloatLabel>
         </div>
 
+        <!-- Capacidade Estimada -->
+        <div class="mt-8">
+            <FloatLabel>
+                <InputNumber
+                    id="capacidade"
+                    v-model="form.capacidade"
+                    name="capacidade"
+                    :placeholder="isCampoFocused.capacidade ? 'Ex.: 50' : undefined"
+                    @focus="isCampoFocused.capacidade = true"
+                    @blur="isCampoFocused.capacidade = false"
+                    :min="1"
+                    :max="10000"
+                    class="w-full mt-1 mb-1"
+                />
+                <label for="capacidade" class="text-black">Capacidade estimada (pessoas)</label>
+            </FloatLabel>
+        </div>
+
         <!-- Instalações -->
         <div class="mt-8">
             Instalações
@@ -165,6 +183,7 @@
     import { reactive } from 'vue';
     import { Form }                  from '@primevue/forms';
     import InputText                 from 'primevue/inputtext';
+    import InputNumber               from 'primevue/inputnumber';
     import Textarea                  from 'primevue/textarea';
     import FloatLabel                from 'primevue/floatlabel';
     import Button                    from 'primevue/button';
@@ -179,6 +198,7 @@
         estado: '',
         proprietario: '',
         celular: '',
+        capacidade: null as number | null,
         foto: null,
         instalacoes: [] as string[],
         atividades: [] as string[],
@@ -191,6 +211,7 @@
         estado: false,
         proprietario: false,
         celular: false,
+        capacidade: false,
         descricao: false
     });
 
@@ -236,11 +257,16 @@
 
   .p-floatlabel:has(input.p-filled) label, .p-floatlabel:has(input:focus) label,
   .p-floatlabel:has(textarea.p-filled) label, .p-floatlabel:has(textarea:focus) label,
-  .p-floatlabel:has(.p-dropdown.p-filled) label, .p-floatlabel:has(.p-dropdown:focus) label {
+  .p-floatlabel:has(.p-dropdown.p-filled) label, .p-floatlabel:has(.p-dropdown:focus) label,
+  .p-floatlabel:has(.p-inputnumber.p-filled) label, .p-floatlabel:has(.p-inputnumber:focus) label {
     top: -0.75rem;
     color: var(--color-black);
     font-size: 16px;
   }
+  ::v-deep(.p-floatlabel:has(#estado span[aria-expanded="true"])) label {
+  color: black !important;
+  font-size: 16px !important;
+}
 
   /* Ajuste visual para o Dropdown ficar igual aos outros campos */
   .custom-dropdown .p-dropdown-label {
@@ -256,5 +282,26 @@
     border: 1px solid #000;
     background: transparent;
   }
+
+  ::v-deep(.p-inputnumber) {
+  background-color: transparent !important;
+  border: 1px solid black;
+  border-radius: 0.75rem;
+  width: 100%;
+}
+
+::v-deep(.p-inputnumber input) {
+  background-color: transparent !important;
+  color: black !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  width: 100%;
+}
+
+::v-deep(.p-inputnumber input::placeholder) {
+  color: #666;
+}
+
 
 </style>
