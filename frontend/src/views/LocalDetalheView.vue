@@ -1,5 +1,29 @@
 <template>
   <div class="local-detalhe-prototipo">
+    <PesquisarLocal @abrir-dialog="abrirDialog" />
+    
+    <DialogCadastroLocal
+      :visible="visivelDialogEdicao"
+      modo="edicao"
+      @update:visible="visivelDialogEdicao = $event"
+    />
+
+    <div v-if="modalConfirmarExclusao" class="modal-overlay">
+      <div class="modal-confirm">
+        <div class="modal-header">
+          <span>Inativar Local</span>
+          <button class="modal-close" @click="modalConfirmarExclusao = false">✕</button>
+        </div>
+        <div class="modal-body">
+          Tem certeza que quer inativar o local '{{ local.nome }}' 
+        </div>
+        <div class="modal-actions">
+          <button class="btn-sim" @click="confirmarExclusao">Sim</button>
+          <button class="btn-cancelar" @click="modalConfirmarExclusao = false">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
     <div class="local-detalhe-header">
       <div>
         <h1 class="local-title">
@@ -79,8 +103,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import LocalInfo from '@/components/LocalInfo.vue';
+import DialogCadastroLocal from '@/components/DialogCadastro/DialogCadastroLocal.vue';
+import PesquisarLocal from '@/components/PesquisarLocal.vue';
 
 const local = ref({
+  nome: 'Travessia Poços de Caldas',
   owner: 'Henrique Maeda',
   phone: '(44) 98800-5555',
   capacity: 100,
@@ -96,16 +123,31 @@ const local = ref({
   ]
 });
 
+const visivelDialogEdicao = ref(false);
+const modalConfirmarExclusao = ref(false);
+
 function scrollToComentario() {
   const el = document.getElementById('comentario-novo');
   if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
 function onEditLocal() {
-  alert('Editar local!');
+  visivelDialogEdicao.value = true;
 }
+
 function onDeleteLocal() {
-  alert('Excluir local!');
+  modalConfirmarExclusao.value = true;
+}
+
+function confirmarExclusao() {
+  modalConfirmarExclusao.value = false;
+  // Aqui você pode colocar a lógica real de inativação/exclusão
+  alert('Local inativado!');
+}
+
+function abrirDialog(tipo: string) {
+  // Lógica para abrir outros modais se necessário
+  console.log('Abrir dialog:', tipo);
 }
 
 const comentarios = ref([
@@ -161,6 +203,16 @@ function enviarComentario() {
   margin-left: 8px;
   letter-spacing: 1px;
   display: inline-block;
+}
+.star {
+  color: #ccc;
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: color 0.2s;
+  user-select: none;
+}
+.star.filled {
+  color: #FFC107;
 }
 .local-subtitle {
   color: #444;
@@ -281,16 +333,6 @@ function enviarComentario() {
 .comentario-estrelas {
   margin-bottom: 0.5em;
 }
-.star {
-  color: #ccc;
-  font-size: 1.5em;
-  cursor: pointer;
-  transition: color 0.2s;
-  user-select: none;
-}
-.star.filled {
-  color: #FFC107;
-}
 .comentario-texto {
   color: #333;
   font-size: 1.05rem;
@@ -332,6 +374,79 @@ function enviarComentario() {
 }
 .comentario-novo-btn:hover {
   background: #176b43;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.modal-confirm {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+  min-width: 420px;
+  max-width: 90vw;
+  padding: 0;
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 1rem 1.2rem 0.5rem 1.2rem;
+  border-bottom: 1px solid #eee;
+}
+.modal-header span {
+  color: #222;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #444;
+}
+.modal-body {
+  padding: 1.2rem 1.2rem 0.5rem 1.2rem;
+  font-size: 1.08rem;
+  color: #222;
+}
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.2rem 1.2rem 1.2rem;
+}
+.btn-sim {
+  background: #219653;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-sim:hover {
+  background: #176b43;
+}
+.btn-cancelar {
+  background: #fff;
+  color: #222;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-cancelar:hover {
+  background: #f2f2f2;
 }
 @media (max-width: 1100px) {
   .local-detalhe-main, .local-detalhe-header, .local-detalhe-fotos {
