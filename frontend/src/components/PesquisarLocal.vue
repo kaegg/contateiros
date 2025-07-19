@@ -1,5 +1,6 @@
 <template>
-    <Menubar class="bg-white! rounded-none!" id="pesquisarLocal">
+    <div class="pesquisar-local-wrapper">
+      <Menubar class="bg-white! rounded-none! pesquisar-local-menubar" id="pesquisarLocal">
         <template #start>
             <Select v-model="opcaoBusca" :options="opcoesBusca" optionLabel="name" optionValue="value" class="rounded-2xl! w-35 ml-3 btSalvar" id="selectBusca" />
 
@@ -35,13 +36,14 @@
                 </InputGroupAddon>
             </InputGroup>
         </template>
-    </Menubar>
+      </Menubar>
 
-    <!-- Modal de Cadastro de Local -->
-    <DialogCadastroLocal
-      :visible="modalLocalVisivel"
-      @update:visible="modalLocalVisivel = $event"
-    />
+      <!-- Modal de Cadastro de Local -->
+      <DialogCadastroLocal
+        :visible="modalLocalVisivel"
+        @update:visible="modalLocalVisivel = $event"
+      />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -105,6 +107,20 @@
     #pesquisarLocal{
         border: none;
         border-bottom: 1px solid #C1C7CD;
+        width: 100vw;
+        min-width: 100vw;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        position: relative;
+    }
+    .pesquisar-local-wrapper {
+        width: 100vw;
+        min-width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        position: relative;
     }
 
     #selectBusca{
