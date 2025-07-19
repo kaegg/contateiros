@@ -11,7 +11,11 @@
           <span class="local-card__activity-name">{{ activity.name }}</span>
         </span>
       </div>
-      <h2 class="local-card__title">{{ title }}</h2>
+      <h2 class="local-card__title">
+        <router-link :to="{ name: 'local-detalhe', params: { id: id } }" class="local-card__title-link">
+          {{ title }}
+        </router-link>
+      </h2>
       <div class="local-card__location">{{ city }} - {{ state }}</div>
       <div class="local-card__rating">
         <span v-for="i in 5" :key="i" class="star">
@@ -38,6 +42,7 @@
 import { defineProps } from 'vue'
 
 const props = defineProps<{
+  id: string | number // Adicionar id para navegação
   activities: { name: string; icon: any }[]
   title: string
   city: string
@@ -92,6 +97,14 @@ const props = defineProps<{
   font-weight: 700;
   margin: 0 0 4px 0;
   color: #219653;
+}
+.local-card__title-link {
+  color: #219653;
+  text-decoration: none;
+  transition: text-decoration 0.2s;
+}
+.local-card__title-link:hover {
+  text-decoration: underline;
 }
 .local-card__location {
   font-size: 15px;

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import CadastroUsuario from '../views/CadastroUsuarioView.vue';
 import HomeView        from '../views/HomeView.vue';
+import LocalDetalheView from '../views/LocalDetalheView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,12 @@ const router = createRouter({
       path: "/cadastrar",
       name: "cadastroUsuario",
       component: CadastroUsuario,
+    },
+    {
+      path: '/local/:id',
+      name: 'local-detalhe',
+      component: LocalDetalheView,
+      props: true
     },
   ],
 })
