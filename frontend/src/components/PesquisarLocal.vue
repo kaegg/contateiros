@@ -91,6 +91,30 @@
             command: () => {
                 router.push({ name: 'cadastroUsuario' });
             }
+        },
+        {
+            label: 'Ver logs',
+            command: () => {
+                router.push({ name: 'logs' });
+            }
+        },
+        {
+            label: 'Ver atividades',
+            command: () => {
+                router.push({ name: 'atividades' });
+            }
+        },
+        {
+            label: 'Ver instalações',
+            command: () => {
+                router.push({ name: 'instalacoes' });
+            }
+        },
+        {
+            label: 'Ver usuários',
+            command: () => {
+                router.push({ name: 'usuarios' });
+            }
         }
     ]);
 
