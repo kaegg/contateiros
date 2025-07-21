@@ -3,8 +3,8 @@
     <header class="local-info__header">
       <h2 class="local-info__title">Informações</h2>
       <div class="local-info__actions">
-        <button @click="$emit('edit')" title="Editar"><span class="icon">✏️</span></button>
-        <button @click="$emit('delete')" title="Excluir"><span class="icon">🗑️</span></button>
+        <button @click="$emit('edit')" title="Editar"><i class="pi pi-pencil" style="font-size: 1.2rem; color: #3B82F6;"></i></button>
+        <button @click="$emit('delete')" title="Excluir"><i class="pi pi-trash" style="font-size: 1.2rem; color: #EF4444;"></i></button>
       </div>
     </header>
     <ul class="local-info__list">

@@ -8,21 +8,25 @@
       @update:visible="visivelDialogEdicao = $event"
     />
 
-    <div v-if="modalConfirmarExclusao" class="modal-overlay">
-      <div class="modal-confirm">
-        <div class="modal-header">
-          <span>Inativar Local</span>
-          <button class="modal-close" @click="modalConfirmarExclusao = false">✕</button>
-        </div>
-        <div class="modal-body">
-          Tem certeza que quer inativar o local '{{ local.nome }}' 
-        </div>
-        <div class="modal-actions">
-          <button class="btn-sim" @click="confirmarExclusao">Sim</button>
-          <button class="btn-cancelar" @click="modalConfirmarExclusao = false">Cancelar</button>
-        </div>
-      </div>
-    </div>
+    <DialogCadastro
+      v-if="modalCadastroVisivel && tipoCadastro === 'atividade'"
+      :visible="modalCadastroVisivel"
+      tipo="atividade"
+      @update:visible="modalCadastroVisivel = $event"
+    />
+    <DialogCadastro
+      v-if="modalCadastroVisivel && tipoCadastro === 'instalacao'"
+      :visible="modalCadastroVisivel"
+      tipo="instalacao"
+      @update:visible="modalCadastroVisivel = $event"
+    />
+    <ModalConfirmacaoInativacao
+      :visible="modalConfirmarExclusao"
+      titulo="Inativar Local"
+      :texto="`Tem certeza que quer inativar o local '${local.nome}'`"
+      @confirmar="confirmarExclusao"
+      @cancelar="modalConfirmarExclusao = false"
+    />
 
     <div class="local-detalhe-header">
       <div>
@@ -105,6 +109,8 @@ import { ref } from 'vue';
 import LocalInfo from '@/components/LocalInfo.vue';
 import DialogCadastroLocal from '@/components/DialogCadastro/DialogCadastroLocal.vue';
 import PesquisarLocal from '@/components/PesquisarLocal.vue';
+import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
+import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
 
 const local = ref({
   nome: 'Travessia Poços de Caldas',
@@ -125,6 +131,8 @@ const local = ref({
 
 const visivelDialogEdicao = ref(false);
 const modalConfirmarExclusao = ref(false);
+const modalCadastroVisivel = ref(false);
+const tipoCadastro = ref('atividade');
 
 function scrollToComentario() {
   const el = document.getElementById('comentario-novo');
@@ -146,8 +154,8 @@ function confirmarExclusao() {
 }
 
 function abrirDialog(tipo: string) {
-  // Lógica para abrir outros modais se necessário
-  console.log('Abrir dialog:', tipo);
+  tipoCadastro.value = tipo;
+  modalCadastroVisivel.value = true;
 }
 
 const comentarios = ref([
