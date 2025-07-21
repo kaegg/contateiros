@@ -3,7 +3,7 @@
     <Dialog
       :visible="visible"
       modal
-      :header="`Cadastro de ${tipo}`"
+      :header="titulo || `Cadastro de ${tipo}`"
       @update:visible="emit('update:visible', $event)"
       class="bg-white! text-black!"
     >
@@ -20,7 +20,8 @@
 
   const props = defineProps({
     visible: Boolean,
-    tipo: String
+    tipo: String,
+    titulo: { type: String, default: '' }
   });
 
   const emit = defineEmits(['update:visible']);
