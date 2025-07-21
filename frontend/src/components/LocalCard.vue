@@ -7,7 +7,7 @@
           :key="activity.name"
           class="local-card__activity"
         >
-          <span class="local-card__activity-icon" v-html="activity.icon"></span>
+          <span class="local-card__activity-icon"><i :class="activity.icon" /></span>
           <span class="local-card__activity-name">{{ activity.name }}</span>
         </span>
       </div>
