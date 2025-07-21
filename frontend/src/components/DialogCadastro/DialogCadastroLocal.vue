@@ -3,7 +3,7 @@
     <Dialog
       :visible="visible"
       modal
-      header="Cadastro de Local"
+      :header="modo === 'edicao' ? 'Edição de Local' : 'Cadastro de Local'"
       @update:visible="emit('update:visible', $event)"
       class="bg-white! text-black!"
     >
@@ -18,7 +18,12 @@
   import FormCadastroLocal            from "./FormCadastroLocal.vue";  
 
   const props = defineProps({
-    visible: Boolean
+    visible: Boolean,
+    modo: {
+      type: String,
+      default: 'cadastro',
+      validator: (value) => ['cadastro', 'edicao'].includes(value)
+    }
   });
 
   const emit = defineEmits(['update:visible']);

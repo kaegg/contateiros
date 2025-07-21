@@ -7,7 +7,7 @@
     <Dialog
       :visible="visible"
       modal
-      :header="`Criar ${tipo}`"
+      :header="titulo || `Criar ${tipo}`"
       @update:visible="emit('update:visible', $event)"
       class="bg-white! text-black!"
     >
@@ -42,7 +42,8 @@
 
   const props = defineProps({
     visible: Boolean,
-    tipo   : String
+    tipo   : String,
+    titulo : { type: String, default: '' }
   });
 
   // watch(visible, (novaVisibilidade) => {

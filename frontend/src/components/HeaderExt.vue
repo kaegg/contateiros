@@ -34,7 +34,9 @@
   import { ref } from 'vue'
   import Menu from 'primevue/menu'
   import 'primeicons/primeicons.css'
+  import { useRouter } from 'vue-router'
 
+  const router = useRouter();
   const menu = ref();
   
   const toggleMenu = (event: MouseEvent) => {
@@ -42,7 +44,7 @@
   }
 
   const items = ref([
-    { label: 'Perfil', icon: 'pi pi-user'    , command: () => console.log('Perfil') },
+    { label: 'Perfil', icon: 'pi pi-user', command: () => router.push({ name: 'perfil' }) },
     { label: 'Sair'  , icon: 'pi pi-sign-out', command: () => console.log('Sair') }
   ]);
 </script>
