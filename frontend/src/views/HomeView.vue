@@ -12,9 +12,9 @@
     <LocalCard
       id="1"
       :activities="[
-        { name: 'Jornada', icon: JornadaIcon },
-        { name: 'Acampamento', icon: AcampamentoIcon },
-        { name: 'Day Use', icon: DayUseIcon }
+        { name: 'Jornada', icon: activitiesIcons['Jornada'] },
+        { name: 'Acampamento', icon: activitiesIcons['Acampamento'] },
+        { name: 'Day Use', icon: activitiesIcons['Day Use'] }
       ]"
       title="Travessia Poços de Caldas"
       city="Águas da Prata"
@@ -30,8 +30,8 @@
     <LocalCard
       id="2"
       :activities="[
-        { name: 'Jornada', icon: JornadaIcon },
-        { name: 'Acampamento', icon: AcampamentoIcon }
+        { name: 'Jornada', icon: activitiesIcons['Jornada'] },
+        { name: 'Acampamento', icon: activitiesIcons['Acampamento'] }
       ]"
       title="Travessia Lapinha Tabueiros"
       city="Riacho Fundo"
@@ -47,8 +47,8 @@
     <LocalCard
       id="3"
       :activities="[
-        { name: 'Jornada', icon: JornadaIcon },
-        { name: 'Day Use', icon: DayUseIcon }
+        { name: 'Jornada', icon: activitiesIcons['Jornada'] },
+        { name: 'Day Use', icon: activitiesIcons['Day Use'] }
       ]"
       title="Circuito Inter Parques Curitiba"
       city="Curitiba"
@@ -64,8 +64,8 @@
     <LocalCard
       id="4"
       :activities="[
-        { name: 'Acampamento', icon: AcampamentoIcon },
-        { name: 'Day Use', icon: DayUseIcon }
+        { name: 'Acampamento', icon: activitiesIcons['Acampamento'] },
+        { name: 'Day Use', icon: activitiesIcons['Day Use'] }
       ]"
       title="Parque do Ingá"
       city="Maringá"
@@ -91,6 +91,8 @@
     </div>
   </div>
 
+  <!-- <AtividadesTable /> -->
+
   <h1 class="text-black">Home View</h1>
 </template>
 
@@ -101,11 +103,20 @@
   import DialogCadastro   from '@/components/DialogCadastro/DialogCadastro.vue';
   import LocalCard        from '@/components/LocalCard.vue';
   import LocalInfo        from '@/components/LocalInfo.vue';
+  import AtividadesTable from '@/components/AtividadesTable.vue';
 
   // Ícones SVG como string
   const JornadaIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#388e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
   const AcampamentoIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#388e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20L10 4M5 20l7-12 7 12z"/></svg>`;
   const DayUseIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#388e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+
+  // Substituir os ícones SVG por PrimeIcons
+  const activitiesIcons = {
+    'Jornada': 'pi pi-users',
+    'Acampamento': 'pi pi-home',
+    'Day Use': 'pi pi-sun',
+    'Futebol': 'pi pi-compass',
+  };
 
   const visivelDialog = ref(false);
   const tipoCadastro  = ref("atividade");
