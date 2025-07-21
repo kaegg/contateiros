@@ -6,7 +6,7 @@
         <div id="imagemImportada" class="w-20 h-20 rounded-lg border border-dashed border-gray-400 flex items-center justify-center overflow-hidden">
 
             <img v-if="imagemPreview" :src="imagemPreview" alt="Preview" class="w-full h-full object-cover rounded-lg"/>
-          <i v-else class="pi pi-image text-3xl text-gray-400"></i>
+            <i v-else class="pi pi-image text-3xl text-gray-400"></i>
         
         </div>
 
@@ -28,11 +28,13 @@
 </template>
 
 <script setup lang="ts">
-    import { defineProps, ref } from 'vue';
+    import { defineProps, ref, defineEmits } from 'vue';
 
     const props = defineProps({
         label: String,
     });
+
+    const emit = defineEmits(['imagem-selecionada']);
 
     const inputImagem       = ref<HTMLInputElement | null>(null);
     const imagemPreview     = ref<string | null>(null);
@@ -56,11 +58,17 @@
 
             reader.readAsDataURL(file);
         }
+
+        emit('imagem-selecionada', file);
     }
 
     function removerImagem() {
         imagemPreview.value     = null;
         imagemSelecionada.value = null;
         if (inputImagem.value) inputImagem.value.value = '';
+
+        emit('imagem-selecionada', null);
     }
+
+    defineExpose({ removerImagem });
 </script>

@@ -14,6 +14,10 @@
                 />
 
                 <label for="codigo" class="text-black">Código</label>
+
+                <Message v-if="props.formErrors?.codigo" severity="error" size="small" variant="simple" class="text-red-600" >
+                    {{ props.formErrors.codigo[0] }}
+                </Message>
             </FloatLabel>
 
             <!-- Nome -->
@@ -28,19 +32,30 @@
                     class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1"
                 />
                 <label for="nome" class="text-black">Nome</label>
+
+                <Message v-if="props.formErrors?.nome" severity="error" size="small" variant="simple" class="text-red-600" >
+                    {{ props.formErrors.nome[0] }}
+                </Message>
             </FloatLabel>
 
             <!-- Ícone -->
             <div v-if="props.mostrarInputFile" class="col-span-2 sm:col-span-1">
-                <ImportarIcone label="Ícone" />
+                <ImportarIcone ref="iconeRef" label="Ícone" @imagem-selecionada="(file) => (form.icone = file)" />
+                <Message v-if="props.formErrors?.icone" severity="error" size="small" variant="simple" class="text-red-600" >
+                    {{ props.formErrors.icone[0] }}
+                </Message>
             </div>
         </div>
         
         <!-- Botoes -->
         <div class="flex justify-start gap-4 mt-8">
-            <Button class="btSalvar text-white px-4! py-2! rounded-2xl!">
+            <Button class="btSalvar text-white px-4! py-2! rounded-2xl!" @click.prevent="onCriar">
                 <i class="pi pi-save"></i>
                 Criar
+            </Button>
+            <Button class="btSalvar text-white px-4! py-2! rounded-2xl!" @click.prevent="onCriarFechar">
+                <i class="pi pi-save"></i>
+                Criar e fechar
             </Button>
             <Button class="text-white! border border-red-600! bg-red-600! hover:bg-red-700! hover:border-red-700! px-4! py-2! rounded-2xl!" @click="emit('fechar-dialog')">
                 <i class="pi pi-ban"></i>
@@ -51,33 +66,66 @@
 </template>
 
 <script setup lang="ts">
-    import { reactive, defineProps } from 'vue';
-    import { Form }                  from '@primevue/forms';
-    import InputText                 from 'primevue/inputtext';
-    import FloatLabel                from 'primevue/floatlabel';
-    import Button                    from 'primevue/button';
-    import ImportarIcone             from './ImportarIcone.vue';
+    import { reactive, defineProps, watch, ref } from 'vue';
+    import { Form }                              from '@primevue/forms';
+    import InputText                             from 'primevue/inputtext';
+    import FloatLabel                            from 'primevue/floatlabel';
+    import Button                                from 'primevue/button';
+    import ImportarIcone                         from './ImportarIcone.vue';
 
-    const props = defineProps({
-        mostrarInputFile: Boolean,
+    const props = withDefaults(defineProps<{
+        mostrarInputFile: boolean;
+        sucessoCadastro: boolean;
+        formErrors: Record<string, string[]> | null;
+    }>(), {
+        mostrarInputFile: false,
+        sucessoCadastro: false,
+        formErrors: null
     });
 
+    watch(() => props.sucessoCadastro, (novoValor) => {
+        if (novoValor) {
+            limparFormulario();
+        }
+    });
 
-    console.log('mostrarInputFile:', typeof(props.mostrarInputFile));
+    const emit = defineEmits(['fechar-dialog', 'criar', 'criar-fechar']);
 
-    const emit = defineEmits(['fechar-dialog']);
+    const iconeRef = ref();
 
-    const form = reactive({
+    const form = reactive<{
+      codigo: string;
+      nome  : string;
+      ativo : boolean;
+      icone : File | null;
+    }>({
       codigo: '',
-      nome: '',
-      ativo: true,
-      icone: null
+      nome  : '',
+      ativo : true,
+      icone : null
     });
 
     const isCampoFocused = reactive({
         codigo: false,
         nome  : false,
     });
+
+    function onCriar() {
+        emit('criar', { ...form });
+    }
+
+    function onCriarFechar() {
+        emit('criar-fechar', { ...form });
+    }
+
+    function limparFormulario() {
+        form.codigo = '';
+        form.nome = '';
+        form.ativo = true;
+        form.icone = null;
+
+        iconeRef.value?.removerImagem(); // limpa o preview da imagem
+    }
 </script>
 
 <style scoped>

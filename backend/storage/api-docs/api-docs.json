@@ -12,6 +12,214 @@
         }
     ],
     "paths": {
+        "/api/atividade": {
+            "get": {
+                "tags": [
+                    "Atividade"
+                ],
+                "summary": "Listar atividades",
+                "description": "Retorna a lista de todas as atividades cadastradas.",
+                "operationId": "listarAtividades",
+                "responses": {
+                    "200": {
+                        "description": "Lista de atividades retornada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "atividades": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nome": {
+                                                        "type": "string",
+                                                        "example": "Caminhada"
+                                                    },
+                                                    "descricao": {
+                                                        "type": "string",
+                                                        "example": "Atividade física ao ar livre"
+                                                    },
+                                                    "imagem": {
+                                                        "type": "string",
+                                                        "example": "uploads/atividade1.png"
+                                                    },
+                                                    "ativo": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-16T00:00:00Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-07-16T00:00:00Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma atividade encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Nenhuma atividade encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Atividade"
+                ],
+                "summary": "Cria uma nova Atividade",
+                "description": "Endpoint para cadastrar uma nova Atividade com upload de ícone.",
+                "operationId": "825c2649de5dcf05c4cefd0213d50ac9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "codigo",
+                                    "nome",
+                                    "icone",
+                                    "ativo"
+                                ],
+                                "properties": {
+                                    "codigo": {
+                                        "description": "Código único da Atividade",
+                                        "type": "string",
+                                        "example": "ADM"
+                                    },
+                                    "nome": {
+                                        "description": "Nome da Atividade",
+                                        "type": "string",
+                                        "example": "Administrador"
+                                    },
+                                    "icone": {
+                                        "description": "Arquivo de ícone (jpeg, jpg, png, svg)",
+                                        "type": "blob",
+                                        "format": "binary"
+                                    },
+                                    "ativo": {
+                                        "description": "Se a Atividade está ativa",
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Atividade criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Atividade criada sucesso!"
+                                        },
+                                        "atividade": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "codigo": {
+                                                    "type": "string",
+                                                    "example": "ADM"
+                                                },
+                                                "nome": {
+                                                    "type": "string",
+                                                    "example": "Administrador"
+                                                },
+                                                "icone": {
+                                                    "type": "string",
+                                                    "example": "adm.svg"
+                                                },
+                                                "ativo": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-07-16T12:00:00Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-07-16T12:00:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erros de validação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "O campo nome deve ser informado."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/funcao": {
             "get": {
                 "tags": [
@@ -368,6 +576,25 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Erros de validação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "O usuário deve ser informado."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -420,6 +647,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Atividade",
+            "description": "Atividade"
+        },
         {
             "name": "Função",
             "description": "Função"

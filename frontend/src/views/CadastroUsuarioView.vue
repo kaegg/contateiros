@@ -114,7 +114,6 @@
 
 <script setup lang="ts">
   
-  import Loader                       from '@/components/Loader.vue';
   import InputText                    from 'primevue/inputtext';
   import FloatLabel                   from 'primevue/floatlabel';
   import InputMask                    from 'primevue/inputmask';

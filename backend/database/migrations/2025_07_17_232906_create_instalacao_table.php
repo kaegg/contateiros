@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('secao', function (Blueprint $table) {
+        Schema::create('instalacao', function (Blueprint $table) {
             $table->id();
+            $table->string("codigo", length: 10)->nullable(false);
             $table->string("nome"  )->nullable(false);
             $table->boolean("ativo")->nullable(false);
             $table->timestamps();
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('secao');
+        Schema::dropIfExists('instalacao');
     }
 };

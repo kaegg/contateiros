@@ -85,6 +85,14 @@ use Illuminate\Support\Facades\Log;
  *                 @OA\Property(property="updated_at", type="string", format="date-time")
  *             )
  *         )
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Erros de validação",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="O usuário deve ser informado."),
+ *             @OA\Property(property="errors", type="object")
+ *         )
  *     )
  * )
  */

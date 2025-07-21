@@ -81,7 +81,7 @@
         {
             label: 'Cadastrar instalação',
             command: () => {
-                emit('abrir-dialog', 'instalacao');
+                emit('abrir-dialog', 'instalação');
             }
         },
         {
