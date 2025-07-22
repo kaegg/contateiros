@@ -1,5 +1,7 @@
 <template>
   <div class="card flex justify-center">
+    <Toast />
+    <Loader :isLoading="isLoading" />
     <Dialog
       :visible="visible"
       modal
@@ -7,7 +9,7 @@
       @update:visible="emit('update:visible', $event)"
       class="bg-white! text-black!"
     >
-      <Form class="pt-4">
+      <Form class="pt-4" @submit="editarUsuario">
         <div class="titulo-nome">{{ usuario.nome }}</div>
         <div class="grid grid-cols-2 gap-6">
           <FloatLabel>
@@ -20,6 +22,9 @@
               class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1"
             />
             <label for="login" class="text-black">Nome de usuário (login)</label>
+            <Message v-if="formErrors.usuario" severity="error" size="small" variant="simple" class="text-red-600">
+              {{ formErrors.usuario[0] }}
+            </Message>
           </FloatLabel>
           <FloatLabel>
             <InputText
@@ -31,6 +36,9 @@
               class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1"
             />
             <label for="nomeCompleto" class="text-black">Nome completo</label>
+            <Message v-if="formErrors.nome" severity="error" size="small" variant="simple" class="text-red-600">
+              {{ formErrors.nome[0] }}
+            </Message>
           </FloatLabel>
           <FloatLabel>
             <InputText
@@ -42,6 +50,9 @@
               class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1"
             />
             <label for="email" class="text-black">E-mail</label>
+            <Message v-if="formErrors.email" severity="error" size="small" variant="simple" class="text-red-600">
+              {{ formErrors.email[0] }}
+            </Message>
           </FloatLabel>
           <FloatLabel>
             <InputText
@@ -53,40 +64,58 @@
               class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1"
             />
             <label for="telefone" class="text-black">Telefone</label>
+            <Message v-if="formErrors.telefone" severity="error" size="small" variant="simple" class="text-red-600">
+              {{ formErrors.telefone[0] }}
+            </Message>
           </FloatLabel>
           <FloatLabel>
             <Dropdown
               id="funcao"
-              v-model="usuario.funcao.id"
+              v-model="usuario.funcao"
               :options="funcoes"
-              :optionLabel="'nome'"
-              :optionValue="'id'"
-              :placeholder="isCampoFocused.funcao ? 'Selecione a função' : undefined"
+              optionLabel="nome"
+              placeholder="Selecione a função"
               @focus="isCampoFocused.funcao = true"
               @blur="isCampoFocused.funcao = false"
               class="w-full bg-transparent! border! border-black! text-black! rounded-xl! mt-1 mb-1 custom-dropdown"
               :class="{'p-filled': !!usuario.funcao}"
             />
             <label for="funcao" class="text-black!">Função</label>
+            <Message v-if="formErrors.id_funcao" severity="error" size="small" variant="simple" class="text-red-600">
+              {{ formErrors.id_funcao[0] }}
+            </Message>
           </FloatLabel>
           <FloatLabel>
             <Dropdown
               id="secao"
-              v-model="usuario.secao.id"
+              v-model="usuario.secao"
               :options="secoes"
-              :optionLabel="'nome'"
-              :optionValue="'id'"
-              :placeholder="isCampoFocused.secao ? 'Selecione a seção' : undefined"
+              optionLabel="nome"
+              placeholder="Selecione a seção"
               @focus="isCampoFocused.secao = true"
               @blur="isCampoFocused.secao = false"
               class="w-full bg-transparent! border! border-black! text-black! rounded-xl! mt-1 mb-1 custom-dropdown"
               :class="{'p-filled': !!usuario.secao}"
             />
             <label for="secao" class="text-black!">Seção</label>
+            <Message v-if="formErrors.id_secao" severity="error" size="small" variant="simple" class="text-red-600">
+              {{ formErrors.id_secao[0] }}
+            </Message>
+          </FloatLabel>
+          <FloatLabel v-if="!props.usuario.ativo">
+            <Dropdown
+              v-model="statusAtivo"
+              :options="[{label: 'Ativo', value: true}, {label: 'Inativo', value: false}]"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecione o status"
+              class="w-full bg-transparent! border! border-black! text-black! rounded-xl! mt-1 mb-1"
+            />
+            <label for="status" class="text-black!">Status</label>
           </FloatLabel>
         </div>
         <div class="flex justify-start gap-4 mt-8">
-          <Button class="btSalvar text-white px-4! py-2! rounded-2xl!">Atualizar</Button>
+          <Button class="btSalvar text-white px-4! py-2! rounded-2xl!" :disabled="isLoading" type="submit">Atualizar</Button>
           <Button class="text-green-700! border border-green-700! bg-white! hover:bg-green-50! hover:border-green-800! px-4! py-2! rounded-2xl!" @click.prevent="emit('update:visible', false)">Cancelar</Button>
         </div>
       </Form>
@@ -95,13 +124,18 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, reactive } from 'vue';
+import { defineProps, defineEmits, reactive, ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import FloatLabel from 'primevue/floatlabel';
 import { Form } from '@primevue/forms';
+import Toast from 'primevue/toast';
+import Loader from '@/components/Loader.vue';
+import Message from 'primevue/message';
+import axios from 'axios';
+import { useToast } from 'primevue/usetoast';
 
 const props = defineProps({
   visible: Boolean,
@@ -120,7 +154,7 @@ const props = defineProps({
     default: () => []
   }
 });
-const emit = defineEmits(['update:visible']);
+const emit = defineEmits(['update:visible', 'usuarioEditado']);
 
 const isCampoFocused = reactive({
   login: false,
@@ -130,6 +164,72 @@ const isCampoFocused = reactive({
   funcao: false,
   secao: false
 });
+
+const statusAtivo = ref(props.usuario.ativo !== undefined ? props.usuario.ativo : true);
+
+watch(() => props.usuario, (novoUsuario) => {
+  statusAtivo.value = novoUsuario.ativo !== undefined ? novoUsuario.ativo : true;
+});
+
+const isLoading = ref(false);
+const formErrors = ref({});
+const toast = useToast();
+
+watch(() => props.visible, (val) => {
+  if (val) {
+    formErrors.value = {};
+  }
+});
+
+const editarUsuario = async () => {
+  isLoading.value = true;
+  try {
+    const data = {
+      usuario  : props.usuario.usuario,
+      nome     : props.usuario.nome,
+      email    : props.usuario.email,
+      telefone : props.usuario.telefone.replace(/\D/g, ''),
+      id_funcao: props.usuario.funcao ? props.usuario.funcao.id : null,
+      id_secao : props.usuario.secao ? props.usuario.secao.id : null,
+      ativo    : statusAtivo.value
+    };
+    await axios.put(`http://localhost:8000/api/usuario/${props.usuario.id}`, data);
+    formErrors.value = {};
+    toast.add({
+      severity: 'success',
+      summary : 'Usuário atualizado com sucesso!',
+      life    : 3000
+    });
+    emit('usuarioEditado');
+    emit('update:visible', false);
+  } catch (error) {
+    if (error.response?.status === 422) {
+      const backendErrors   = error.response.data.errors;
+      const errosFormulario = {};
+      for (const field in backendErrors) {
+        errosFormulario[field] = backendErrors[field].map((msg) => ({ message: msg }));
+      }
+      setErrors(errosFormulario);
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'Erro ao atualizar usuário',
+        detail: error.message,
+        life: 3000
+      });
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+function setErrors(errors) {
+  const mapped = {};
+  for (const field in errors) {
+    mapped[field] = errors[field].map(e => e.message);
+  }
+  formErrors.value = mapped;
+}
 </script>
 
 <style scoped>
