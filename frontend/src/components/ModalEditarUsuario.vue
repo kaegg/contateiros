@@ -13,7 +13,7 @@
           <FloatLabel>
             <InputText
               id="login"
-              v-model="usuario.login"
+              v-model="usuario.usuario"
               :placeholder="isCampoFocused.login ? 'Ex.: usuario123' : undefined"
               @focus="isCampoFocused.login = true"
               @blur="isCampoFocused.login = false"
@@ -24,7 +24,7 @@
           <FloatLabel>
             <InputText
               id="nomeCompleto"
-              v-model="usuario.nomeCompleto"
+              v-model="usuario.nome"
               :placeholder="isCampoFocused.nomeCompleto ? 'Ex.: João da Silva' : undefined"
               @focus="isCampoFocused.nomeCompleto = true"
               @blur="isCampoFocused.nomeCompleto = false"
@@ -57,8 +57,10 @@
           <FloatLabel>
             <Dropdown
               id="funcao"
-              v-model="usuario.funcao"
+              v-model="usuario.funcao.id"
               :options="funcoes"
+              :optionLabel="'nome'"
+              :optionValue="'id'"
               :placeholder="isCampoFocused.funcao ? 'Selecione a função' : undefined"
               @focus="isCampoFocused.funcao = true"
               @blur="isCampoFocused.funcao = false"
@@ -70,8 +72,10 @@
           <FloatLabel>
             <Dropdown
               id="secao"
-              v-model="usuario.secao"
+              v-model="usuario.secao.id"
               :options="secoes"
+              :optionLabel="'nome'"
+              :optionValue="'id'"
               :placeholder="isCampoFocused.secao ? 'Selecione a seção' : undefined"
               @focus="isCampoFocused.secao = true"
               @blur="isCampoFocused.secao = false"
@@ -104,16 +108,16 @@ const props = defineProps({
   usuario: {
     type: Object,
     default: () => ({
-      nome: '', login: '', nomeCompleto: '', email: '', telefone: '', funcao: null, secao: null
+      nome: '', usuario: '', email: '', telefone: '', funcao: { id: null, nome: '' }, secao: { id: null, nome: '' }
     })
   },
   funcoes: {
     type: Array,
-    default: () => ['Chefe de seção', 'Chefe assistente', 'Diretor']
+    default: () => []
   },
   secoes: {
     type: Array,
-    default: () => ['Escoteiros', 'Lobinhos', 'Sênior']
+    default: () => []
   }
 });
 const emit = defineEmits(['update:visible']);
@@ -186,8 +190,18 @@ const isCampoFocused = reactive({
 .custom-dropdown .p-dropdown-label,
 .custom-dropdown .p-select-label,
 .custom-dropdown .p-dropdown-item,
-.custom-dropdown .p-dropdown-items .p-dropdown-item {
+.custom-dropdown .p-dropdown-items .p-dropdown-item,
+span.p-select-label {
+  color: #222 !important;
+  background: transparent;
+}
+
+/* Garante que a opção selecionada também fique preta */
+#funcao, #secao {
   color: #222 !important;
 }
 
+:deep(.p-select-label) {
+  color: #222 !important;
+}
 </style> 

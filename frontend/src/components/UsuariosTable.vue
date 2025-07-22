@@ -45,14 +45,14 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="usuario in paginatedUsuarios" :key="usuario.codigo">
-          <td>{{ usuario.codigo }}</td>
+        <tr v-for="usuario in paginatedUsuarios" :key="usuario.id">
+          <td>{{ usuario.id }}</td>
           <td>{{ usuario.nome }}</td>
-          <td>{{ usuario.data }}</td>
-          <td>{{ usuario.perfil }}</td>
+          <td>{{ usuario.created_at }}</td>
+          <td>{{ usuario.funcao.nome }}</td>
           <td>
-            <span :class="['status', usuario.status === 'Ativo' ? 'ativo' : 'inativo']">
-              {{ usuario.status }}
+            <span :class="['status', usuario.ativo ? 'ativo' : 'inativo']">
+              {{ usuario.ativo ? 'Ativo' : 'Inativo' }}
             </span>
           </td>
           <td>
@@ -82,43 +82,116 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch } from 'vue'
-import ModalEditarUsuario from '@/components/ModalEditarUsuario.vue';
-import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
+<script setup lang="ts">
+  import { ref, computed, watch } from 'vue'
+  import ModalEditarUsuario from '@/components/ModalEditarUsuario.vue';
+  import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
+  import axios                        from 'axios';
+  import { useToast }                 from 'primevue/usetoast';
+  import { onMounted, reactive } from 'vue';
 
-const usuarios = ref([
-  { codigo: '#00002', nome: 'Raphael Ichiro', data: '11/05/2022 16:00', perfil: 'Chefe de seção', status: 'Ativo', login: 'raphael', nomeCompleto: 'Raphael Ichiro', email: 'raphael@contateiros.com.br', telefone: '(44) 9 9999-9999', funcao: 'Chefe de seção', secao: 'Escoteiros' },
-  { codigo: '#00031', nome: 'Henrique Maeda', data: '12/05/2022 10:01', perfil: 'Chefe assistente', status: 'Ativo', login: 'henrique', nomeCompleto: 'Henrique Maeda', email: 'henrique@contateiros.com.br', telefone: '(44) 9 9999-9999', funcao: 'Chefe assistente', secao: 'Lobinhos' },
-  { codigo: '#00005', nome: 'Leonardo Almenara', data: '13/05/2022 10:02', perfil: 'Chefe assistente', status: 'Ativo', login: 'leonardo', nomeCompleto: 'Leonardo Almenara', email: 'leo_pereira@contateiros.com.br', telefone: '(44) 9 9999-9999', funcao: 'Chefe assistente', secao: 'Escoteiros' },
-  { codigo: '#00006', nome: 'Kauan Eguchi', data: '13/05/2022 19:03', perfil: 'Chefe de seção', status: 'Ativo', login: 'kauan', nomeCompleto: 'Kauan Eguchi', email: 'kauan@contateiros.com.br', telefone: '(44) 9 9999-9999', funcao: 'Chefe de seção', secao: 'Sênior' },
-  { codigo: '#00001', nome: 'Admin', data: '15/05/2022 07:09', perfil: 'Diretor', status: 'Ativo', login: 'admin', nomeCompleto: 'Admin', email: 'admin@contateiros.com.br', telefone: '(44) 9 9999-9999', funcao: 'Diretor', secao: 'Escoteiros' },
-  { codigo: '#00006', nome: 'Kauan Eguchi teste', data: '14/05/2022 17:10', perfil: 'Chefe de seção', status: 'Inativo', login: 'kauan2', nomeCompleto: 'Kauan Eguchi teste', email: 'kauan2@contateiros.com.br', telefone: '(44) 9 9999-9999', funcao: 'Chefe de seção', secao: 'Escoteiros' },
-])
+  type Usuario = {
+    id: number;
+    nome: string;
+    usuario: string;
+    email: string;
+    telefone: string;
+    id_funcao: number;
+    id_secao: number;
+    ativo: boolean;
+    funcao: Funcao;
+    secao: Secao;
+    created_at: string;
+    updated_at: string;
+    // add other fields as needed
+  };
 
-const funcoes = ['Chefe de seção', 'Chefe assistente', 'Diretor'];
-const secoes = ['Escoteiros', 'Lobinhos', 'Sênior'];
+  type Funcao = {
+    id: number;
+    nome: string;
+  };
+
+  type Secao = {
+    id: number;
+    nome: string;
+  };
+
+  const toast      = useToast();
+  const users      = ref<Usuario[]>([]);
+  const funcoes    = ref<Funcao[]>([]);
+  const secoes     = ref<Secao[]>([]);
+  const isLoading  = ref(false);
+  const formErrors = ref<{ [key: string]: string[] }>({});
+
+onMounted(async () => {
+    isLoading.value = true;
+
+    try {
+      
+      const usersResp = await axios.get("http://localhost:8000/api/usuario");
+
+      if (usersResp.data.success) {
+
+        users.value = usersResp.data.usuarios;
+
+        // Extrai funções únicas
+        funcoes.value = [
+          ...new Map(users.value.map(u => [u.funcao.id, u.funcao])).values()
+        ];
+
+        // Extrai seções únicas
+        secoes.value = [
+          ...new Map(users.value.map(u => [u.secao.id, u.secao])).values()
+        ];
+
+      } else {
+
+        toast.add({
+          severity: 'error',
+          summary : 'Ocorreu um erro ao buscar usuários.',
+          life    : 3000
+        });
+
+      }
+    } catch (error) {
+
+      toast.add({
+        severity: 'error',
+        summary : 'Ocorreu um erro ao buscar dados de usuários, por favor recarregue a página e tente novamente.',
+        life    : 4000
+      });
+
+    } finally {
+
+      isLoading.value = false;
+    
+    }
+  });
+
 
 const search = ref('')
 const rowsPerPage = ref(10)
 const currentPage = ref(1)
 
 const showEditModal = ref(false);
-const usuarioSelecionado = ref(null);
+const usuarioSelecionado = ref<Usuario | null>(null);
 
-function openEditModal(usuario) {
-  usuarioSelecionado.value = { ...usuario };
+function openEditModal(usuario: Usuario) {
+  // Garante que funcao e secao referenciem os objetos corretos das listas funcoes/secoes
+  const funcaoSelecionada = funcoes.value.find(f => f.id === usuario.funcao.id) || usuario.funcao;
+  const secaoSelecionada = secoes.value.find(s => s.id === usuario.secao.id) || usuario.secao;
+  usuarioSelecionado.value = { ...usuario, funcao: funcaoSelecionada, secao: secaoSelecionada };
   showEditModal.value = true;
 }
-function closeEditModal() {
-  showEditModal.value = false;
-  usuarioSelecionado.value = null;
+function closeEditModal(val: boolean) {
+  showEditModal.value = val;
+  if (!val) usuarioSelecionado.value = null;
 }
 
 const showDeleteModal = ref(false);
-const usuarioParaInativar = ref(null);
+const usuarioParaInativar = ref<Usuario | null>(null);
 
-function openDeleteModal(usuario) {
+function openDeleteModal(usuario: Usuario) {
   usuarioParaInativar.value = usuario;
   showDeleteModal.value = true;
 }
@@ -128,13 +201,16 @@ function closeDeleteModal() {
 }
 
 const filteredUsuarios = computed(() => {
-  if (!search.value) return usuarios.value
-  return usuarios.value.filter(u =>
-    u.codigo.toLowerCase().includes(search.value.toLowerCase()) ||
+  if (!search.value) return users.value
+  return users.value.filter(u =>
+    u.id.toString().includes(search.value) ||
     u.nome.toLowerCase().includes(search.value.toLowerCase()) ||
-    u.data.toLowerCase().includes(search.value.toLowerCase()) ||
-    u.perfil.toLowerCase().includes(search.value.toLowerCase()) ||
-    u.status.toLowerCase().includes(search.value.toLowerCase())
+    u.usuario.toLowerCase().includes(search.value.toLowerCase()) ||
+    u.email.toLowerCase().includes(search.value.toLowerCase()) ||
+    u.telefone.toLowerCase().includes(search.value.toLowerCase()) ||
+    u.id_funcao.toString().includes(search.value) ||
+    u.id_secao.toString().includes(search.value) ||
+    u.ativo.toString().includes(search.value)
   )
 })
 
