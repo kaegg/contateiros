@@ -171,15 +171,46 @@ class UsuarioController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Usuario $usuario)
+    public function update(StoreUsuarioRequest $request, Usuario $usuario)
     {
-        //
+        $validated = $request->validated();
+
+        $usuario->update([
+            "nome"      => $validated["nome"],
+            "usuario"   => $validated["usuario"],
+            "email"     => $validated["email"],
+            "telefone"  => $validated["telefone"],
+            "id_funcao" => $validated["id_funcao"],
+            "id_secao"  => $validated["id_secao"],
+            "ativo"     => $validated["ativo"],
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Usuário atualizado com sucesso!",
+            'usuario' => $usuario
+        ], 200);   
     }
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Usuario $usuario)
+    {
+        $usuario->ativo = false;
+        $usuario->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Usuário inativado com sucesso!",
+            'usuario' => $usuario
+        ], 200);
+    }
+
+     /**
+     * Inactivate the specified resource from storage.
+     */
+    public function inactivate(Usuario $usuario)
     {
         //
     }
