@@ -13,6 +13,8 @@ Route::get("/secao" , [SecaoController::class , "index"]);
 
 Route::get("/usuario" , [UsuarioController::class, "index"]);
 Route::post("/usuario", [UsuarioController::class, "store"]);
+Route::put("/usuario/{usuario}", [UsuarioController::class, "update"]);
+Route::delete('/usuario/{usuario}', [UsuarioController::class, 'destroy']);
 
 Route::get("/atividade", [AtividadeController::class, "index"]);
 Route::post("/atividade", [AtividadeController::class, "store"]);

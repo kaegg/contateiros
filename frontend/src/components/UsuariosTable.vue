@@ -1,5 +1,6 @@
 <template>
   <div class="atividades-table-container">
+    <Toast />
     <h1 class="logs-title">Usuários</h1>
     <ModalEditarUsuario
       v-if="showEditModal"
@@ -8,12 +9,13 @@
       :funcoes="funcoes"
       :secoes="secoes"
       @update:visible="closeEditModal"
+      @usuarioEditado="buscarUsuarios"
     />
     <ModalConfirmacaoInativacao
       :visible="showDeleteModal"
       titulo="Inativar usuário"
       :texto="`Tem certeza que quer inativar o usuário '${usuarioParaInativar?.nome}'?`"
-      @confirmar="closeDeleteModal"
+      @confirmar="inativarUsuario"
       @cancelar="closeDeleteModal"
     />
     <div class="table-header">
@@ -48,7 +50,7 @@
         <tr v-for="usuario in paginatedUsuarios" :key="usuario.id">
           <td>{{ usuario.id }}</td>
           <td>{{ usuario.nome }}</td>
-          <td>{{ usuario.created_at }}</td>
+          <td>{{ formatarDataBrasileira(usuario.created_at) }}</td>
           <td>{{ usuario.funcao.nome }}</td>
           <td>
             <span :class="['status', usuario.ativo ? 'ativo' : 'inativo']">
@@ -83,12 +85,12 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, watch } from 'vue'
+  import { ref, computed, watch, onMounted, reactive } from 'vue'
   import ModalEditarUsuario from '@/components/ModalEditarUsuario.vue';
   import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
   import axios                        from 'axios';
   import { useToast }                 from 'primevue/usetoast';
-  import { onMounted, reactive } from 'vue';
+  import Toast from 'primevue/toast';
 
   type Usuario = {
     id: number;
@@ -122,51 +124,39 @@
   const secoes     = ref<Secao[]>([]);
   const isLoading  = ref(false);
   const formErrors = ref<{ [key: string]: string[] }>({});
+  const isInativando = ref(false);
 
-onMounted(async () => {
+  const buscarUsuarios = async () => {
     isLoading.value = true;
-
     try {
-      
       const usersResp = await axios.get("http://localhost:8000/api/usuario");
-
       if (usersResp.data.success) {
-
         users.value = usersResp.data.usuarios;
-
-        // Extrai funções únicas
         funcoes.value = [
           ...new Map(users.value.map(u => [u.funcao.id, u.funcao])).values()
         ];
-
-        // Extrai seções únicas
         secoes.value = [
           ...new Map(users.value.map(u => [u.secao.id, u.secao])).values()
         ];
-
       } else {
-
         toast.add({
           severity: 'error',
           summary : 'Ocorreu um erro ao buscar usuários.',
           life    : 3000
         });
-
       }
     } catch (error) {
-
       toast.add({
         severity: 'error',
         summary : 'Ocorreu um erro ao buscar dados de usuários, por favor recarregue a página e tente novamente.',
         life    : 4000
       });
-
     } finally {
-
       isLoading.value = false;
-    
     }
-  });
+  };
+
+  onMounted(buscarUsuarios);
 
 
 const search = ref('')
@@ -198,6 +188,41 @@ function openDeleteModal(usuario: Usuario) {
 function closeDeleteModal() {
   showDeleteModal.value = false;
   usuarioParaInativar.value = null;
+}
+
+async function inativarUsuario() {
+  if (!usuarioParaInativar.value) return;
+  isInativando.value = true;
+  try {
+    await axios.delete(`http://localhost:8000/api/usuario/${usuarioParaInativar.value.id}`);
+    toast.add({
+      severity: 'success',
+      summary: 'Usuário inativado com sucesso!',
+      life: 3000
+    });
+    buscarUsuarios();
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erro ao inativar usuário',
+      detail: error.message,
+      life: 3000
+    });
+  } finally {
+    isInativando.value = false;
+    closeDeleteModal();
+  }
+}
+
+function formatarDataBrasileira(dataIso: string) {
+  if (!dataIso) return '';
+  const data = new Date(dataIso);
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const ano = data.getFullYear();
+  const hora = String(data.getHours()).padStart(2, '0');
+  const min = String(data.getMinutes()).padStart(2, '0');
+  return `${dia}/${mes}/${ano} ${hora}:${min}`;
 }
 
 const filteredUsuarios = computed(() => {

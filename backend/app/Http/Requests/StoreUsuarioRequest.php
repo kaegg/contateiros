@@ -21,9 +21,10 @@ class StoreUsuarioRequest extends FormRequest
      */
     public function rules(): array
     {
+        $usuarioId = $this->route('usuario') ? $this->route('usuario')->id : null;
         return [
             "nome"      => "required|string|max:255",
-            "usuario"   => "required|string|max:50|unique:App\Models\Usuario,usuario",
+            "usuario"   => "required|string|max:50|unique:App\\Models\\Usuario,usuario," . $usuarioId,
             "telefone"  => "required|string|max:25",
             "email"     => "required|email|max:255",
             "id_funcao" => "required|integer",
