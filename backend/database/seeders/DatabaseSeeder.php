@@ -16,6 +16,11 @@ class DatabaseSeeder extends Seeder
             SecaoSeeder::class,
             FuncaoSeeder::class,
             UsuarioSeeder::class,
+            AtividadeSeeder::class,
+            InstalacaoSeeder::class,
+            LocalSeeder::class,
+            LocalImagemSeeder::class,
+            LocalRelationsSeeder::class,
         ]);
     }
 }
