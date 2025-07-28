@@ -8,74 +8,34 @@
     @update:visible="visivelDialog = $event"
   />
 
-  <div style="display: flex; flex-wrap: wrap; gap: 24px; margin: 32px auto; max-width: 1400px; padding: 0 24px; justify-content: center;">
+  <!-- Loading state -->
+  <div v-if="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Carregando locais...</p>
+  </div>
+
+  <!-- Error state -->
+  <div v-else-if="error" class="error-container">
+    <p>Erro ao carregar locais: {{ error }}</p>
+    <button @click="loadLocais" class="retry-button">Tentar novamente</button>
+  </div>
+
+  <!-- Success state -->
+  <div v-else style="display: flex; flex-wrap: wrap; gap: 24px; margin: 32px auto; max-width: 1400px; padding: 0 24px; justify-content: center;">
     <LocalCard
-      id="1"
-      :activities="[
-        { name: 'Jornada', icon: activitiesIcons['Jornada'] },
-        { name: 'Acampamento', icon: activitiesIcons['Acampamento'] },
-        { name: 'Day Use', icon: activitiesIcons['Day Use'] }
-      ]"
-      title="Travessia Poços de Caldas"
-      city="Águas da Prata"
-      state="MG"
-      :rating="3"
-      owner="Henrique Hiroshi Maeda"
-      phone="(44) 98800-5555"
-      :capacity="100"
-      :facilities="['Banheiro', 'Energia', 'Internet', 'Rede Celular']"
-      image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80"
-      @ver-detalhes="abrirDetalhes"
-    />
-    <LocalCard
-      id="2"
-      :activities="[
-        { name: 'Jornada', icon: activitiesIcons['Jornada'] },
-        { name: 'Acampamento', icon: activitiesIcons['Acampamento'] }
-      ]"
-      title="Travessia Lapinha Tabueiros"
-      city="Riacho Fundo"
-      state="MG"
-      :rating="4"
-      owner="Leonardo Almenara"
-      phone="(44) 98800-5989"
-      :capacity="120"
-      :facilities="['Banheiro', 'Energia', 'Internet', 'Rede Celular']"
-      image="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"
-      @ver-detalhes="abrirDetalhes"
-    />
-    <LocalCard
-      id="3"
-      :activities="[
-        { name: 'Jornada', icon: activitiesIcons['Jornada'] },
-        { name: 'Day Use', icon: activitiesIcons['Day Use'] }
-      ]"
-      title="Circuito Inter Parques Curitiba"
-      city="Curitiba"
-      state="PR"
-      :rating="5"
-      owner="Kauan Eguchi"
-      phone="(44) 98890-5555"
-      :capacity="50"
-      :facilities="['Banheiro', 'Energia', 'Internet', 'Rede Celular']"
-      image="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80"
-      @ver-detalhes="abrirDetalhes"
-    />
-    <LocalCard
-      id="4"
-      :activities="[
-        { name: 'Acampamento', icon: activitiesIcons['Acampamento'] },
-        { name: 'Day Use', icon: activitiesIcons['Day Use'] }
-      ]"
-      title="Parque do Ingá"
-      city="Maringá"
-      state="PR"
-      :rating="4"
-      owner="Raphael Ichiro"
-      phone="(44) 98801-8555"
-      :capacity="100"
-      :facilities="['Banheiro', 'Energia', 'Internet', 'Rede Celular']"
-      image="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80"
+      v-for="local in locais"
+      :key="local.id"
+      :id="local.id"
+      :activities="mapActivitiesForLocal(local)"
+      :title="local.nome"
+      :city="local.cidade"
+      :state="local.estado"
+      :rating="calculateRatingForLocal(local)"
+      :owner="local.nome_proprietario"
+      :phone="local.telefone_proprietario"
+      :capacity="local.capacidade_pessoas"
+      :facilities="mapFacilitiesForLocal(local)"
+      :image="getImageForLocal(local)"
       @ver-detalhes="abrirDetalhes"
     />
   </div>
@@ -97,13 +57,14 @@
 </template>
 
 <script setup>
-  import { ref }          from "vue";
+  import { ref, onMounted } from "vue";
   import PesquisarLocal   from '@/components/PesquisarLocal.vue';
   import FiltroAtividades from '@/components/FiltroAtividades.vue';
   import DialogCadastro   from '@/components/DialogCadastro/DialogCadastro.vue';
   import LocalCard        from '@/components/LocalCard.vue';
   import LocalInfo        from '@/components/LocalInfo.vue';
   import AtividadesTable from '@/components/AtividadesTable.vue';
+  import { localService, calculateAverageRating, mapActivities, mapFacilities } from '@/services/api.js';
 
   // Ícones SVG como string
   const JornadaIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#388e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
@@ -120,6 +81,12 @@
 
   const visivelDialog = ref(false);
   const tipoCadastro  = ref("atividade");
+  
+  // Estados para dados dos locais
+  const locais = ref([]);
+  const loading = ref(false);
+  const error = ref(null);
+
   function abrirDialog(tipo) {
     tipoCadastro.value  = tipo;
     visivelDialog.value = true;
@@ -133,21 +100,147 @@
     localSelecionado.value = local;
     detalhesVisiveis.value = true;
   }
+  
   function fecharDetalhes() {
     detalhesVisiveis.value = false;
     localSelecionado.value = {};
   }
+  
   function onEditLocal() {
     // lógica para editar local
     alert('Editar local!');
   }
+  
   function onDeleteLocal() {
     // lógica para deletar local
     alert('Excluir local!');
   }
+
+  // Função para carregar locais da API
+  async function loadLocais() {
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const response = await localService.getAll();
+      if (response.success) {
+        locais.value = response.locais;
+      } else {
+        error.value = response.message || 'Erro ao carregar locais';
+      }
+    } catch (err) {
+      console.error('Erro ao carregar locais:', err);
+      error.value = 'Erro de conexão com o servidor';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  // Função para mapear atividades de um local
+  function mapActivitiesForLocal(local) {
+    if (!local.atividades || local.atividades.length === 0) {
+      return [];
+    }
+    
+    return local.atividades.map(activity => ({
+      name: activity.nome,
+      icon: activitiesIcons[activity.nome] || 'pi pi-star'
+    }));
+  }
+
+  // Função para mapear instalações de um local
+  function mapFacilitiesForLocal(local) {
+    if (!local.instalacoes || local.instalacoes.length === 0) {
+      return ['Banheiro', 'Energia', 'Internet', 'Rede Celular']; // Fallback
+    }
+    
+    return local.instalacoes.map(facility => facility.nome);
+  }
+
+  // Função para calcular rating de um local
+  function calculateRatingForLocal(local) {
+    if (!local.avaliacoes || local.avaliacoes.length === 0) {
+      return 0;
+    }
+    
+    return calculateAverageRating(local.avaliacoes);
+  }
+
+  // Função para obter imagem de um local
+  function getImageForLocal(local) {
+    if (!local.imagens || local.imagens.length === 0) {
+      // Imagens padrão baseadas no nome do local
+      const defaultImages = {
+        'Sala de Reuniões Principal': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+        'Auditório Central': 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
+        'Sala de Treinamento': 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80',
+        'Espaço de Eventos': 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
+        'Sala de Conferência': 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80',
+      };
+      
+      return defaultImages[local.nome] || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80';
+    }
+    
+    // Se há imagens no backend, usar o endpoint para servir a primeira imagem
+    const primeiraImagem = local.imagens[0];
+    return `http://localhost:8000/api/local-imagem/${primeiraImagem.id}`;
+  }
+
+  // Carregar locais quando o componente for montado
+  onMounted(() => {
+    loadLocais();
+  });
 </script>
 
 <style scoped>
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #219653;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.retry-button {
+  background: #219653;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 16px;
+}
+
+.retry-button:hover {
+  background: #1e8449;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
