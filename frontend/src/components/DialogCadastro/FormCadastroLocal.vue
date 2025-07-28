@@ -51,7 +51,7 @@
 
         <!-- Foto do Local -->
         <div class="mt-8">
-            <ImportarIcone label="Fotos do local" />
+            <ImportarIcone label="Fotos do local" @imagem-selecionada="onImagemSelecionada" />
         </div>
 
         <!-- Nome do Proprietário -->
@@ -180,81 +180,119 @@
 </template>
 
 <script setup lang="ts">
-    import { reactive } from 'vue';
-    import { Form }                  from '@primevue/forms';
-    import InputText                 from 'primevue/inputtext';
-    import InputNumber               from 'primevue/inputnumber';
-    import Textarea                  from 'primevue/textarea';
-    import FloatLabel                from 'primevue/floatlabel';
-    import Button                    from 'primevue/button';
-    import ImportarIcone             from './ImportarIcone.vue';
-    import Dropdown                  from 'primevue/dropdown';
+import { reactive } from 'vue';
+import { localService } from '@/services/api.js';
+import { localImageService } from '@/services/localImageService.js';
+import { Form }                  from '@primevue/forms';
+import InputText                 from 'primevue/inputtext';
+import InputNumber               from 'primevue/inputnumber';
+import Textarea                  from 'primevue/textarea';
+import FloatLabel                from 'primevue/floatlabel';
+import Button                    from 'primevue/button';
+import ImportarIcone             from './ImportarIcone.vue';
+import Dropdown                  from 'primevue/dropdown';
 
-    const emit = defineEmits(['fechar-dialog']);
+const emit = defineEmits(['fechar-dialog']);
 
-    const form = reactive({
-        nome: '',
-        cidade: '',
-        estado: '',
-        proprietario: '',
-        celular: '',
-        capacidade: null as number | null,
-        foto: null,
-        instalacoes: [] as string[],
-        atividades: [] as string[],
-        descricao: ''
-    });
+const form = reactive({
+    nome: '',
+    cidade: '',
+    estado: '',
+    proprietario: '',
+    celular: '',
+    capacidade: null as number | null,
+    foto: null as string | null,
+    instalacoes: [] as string[],
+    atividades: [] as string[],
+    descricao: ''
+});
 
-    const isCampoFocused = reactive({
-        nome: false,
-        cidade: false,
-        estado: false,
-        proprietario: false,
-        celular: false,
-        capacidade: false,
-        descricao: false
-    });
+const isCampoFocused = reactive({
+    nome: false,
+    cidade: false,
+    estado: false,
+    proprietario: false,
+    celular: false,
+    capacidade: false,
+    descricao: false
+});
 
-    const instalacoes = ['Banheiro', 'Energia', 'Internet', 'Rede Celular'];
-    const atividades = ['Jornada', 'Acampamento', 'Day Use', 'Trilhas', 'Eventos'];
-    const estados = [
-        { label: 'AC', value: 'AC' }, { label: 'AL', value: 'AL' }, { label: 'AP', value: 'AP' }, { label: 'AM', value: 'AM' },
-        { label: 'BA', value: 'BA' }, { label: 'CE', value: 'CE' }, { label: 'DF', value: 'DF' }, { label: 'ES', value: 'ES' },
-        { label: 'GO', value: 'GO' }, { label: 'MA', value: 'MA' }, { label: 'MT', value: 'MT' }, { label: 'MS', value: 'MS' },
-        { label: 'MG', value: 'MG' }, { label: 'PA', value: 'PA' }, { label: 'PB', value: 'PB' }, { label: 'PR', value: 'PR' },
-        { label: 'PE', value: 'PE' }, { label: 'PI', value: 'PI' }, { label: 'RJ', value: 'RJ' }, { label: 'RN', value: 'RN' },
-        { label: 'RS', value: 'RS' }, { label: 'RO', value: 'RO' }, { label: 'RR', value: 'RR' }, { label: 'SC', value: 'SC' },
-        { label: 'SP', value: 'SP' }, { label: 'SE', value: 'SE' }, { label: 'TO', value: 'TO' }
-    ];
+const instalacoes = ['Banheiro', 'Energia', 'Internet', 'Rede Celular'];
+const atividades = ['Jornada', 'Acampamento', 'Day Use', 'Trilhas', 'Eventos'];
+const estados = [
+    { label: 'AC', value: 'AC' }, { label: 'AL', value: 'AL' }, { label: 'AP', value: 'AP' }, { label: 'AM', value: 'AM' },
+    { label: 'BA', value: 'BA' }, { label: 'CE', value: 'CE' }, { label: 'DF', value: 'DF' }, { label: 'ES', value: 'ES' },
+    { label: 'GO', value: 'GO' }, { label: 'MA', value: 'MA' }, { label: 'MT', value: 'MT' }, { label: 'MS', value: 'MS' },
+    { label: 'MG', value: 'MG' }, { label: 'PA', value: 'PA' }, { label: 'PB', value: 'PB' }, { label: 'PR', value: 'PR' },
+    { label: 'PE', value: 'PE' }, { label: 'PI', value: 'PI' }, { label: 'RJ', value: 'RJ' }, { label: 'RN', value: 'RN' },
+    { label: 'RS', value: 'RS' }, { label: 'RO', value: 'RO' }, { label: 'RR', value: 'RR' }, { label: 'SC', value: 'SC' },
+    { label: 'SP', value: 'SP' }, { label: 'SE', value: 'SE' }, { label: 'TO', value: 'TO' }
+];
 
-    function toggleInstalacao(instalacao: string) {
-        const index = form.instalacoes.indexOf(instalacao);
-        if (index > -1) {
-            form.instalacoes.splice(index, 1);
-        } else {
-            form.instalacoes.push(instalacao);
-        }
+// Handler do evento de imagem do ImportarIcone
+const onImagemSelecionada = (file: File | null) => {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            form.foto = e.target?.result as string; // Base64 da imagem
+        };
+        reader.readAsDataURL(file);
+    } else {
+        form.foto = null;
     }
+};
 
-    function toggleAtividade(atividade: string) {
-        const index = form.atividades.indexOf(atividade);
-        if (index > -1) {
-            form.atividades.splice(index, 1);
-        } else {
-            form.atividades.push(atividade);
-        }
+function toggleInstalacao(instalacao: string) {
+    const index = form.instalacoes.indexOf(instalacao);
+    if (index > -1) {
+        form.instalacoes.splice(index, 1);
+    } else {
+        form.instalacoes.push(instalacao);
     }
+}
 
-    function criarLocal() {
-        // Aqui você pode implementar a lógica para salvar o local
-        console.log('Dados do local:', form);
-        // Por enquanto apenas fecha o modal
+function toggleAtividade(atividade: string) {
+    const index = form.atividades.indexOf(atividade);
+    if (index > -1) {
+        form.atividades.splice(index, 1);
+    } else {
+        form.atividades.push(atividade);
+    }
+}
+
+async function criarLocal() {
+    try {
+        // Substitua pelo id do usuário logado
+        const idUsuario = 1;
+        const localResponse = await localService.create({
+            nome: form.nome,
+            cidade: form.cidade,
+            estado: form.estado,
+            nome_proprietario: form.proprietario,
+            telefone_proprietario: form.celular,
+            descricao: form.descricao,
+            capacidade_pessoas: form.capacidade,
+            id_usuario_criacao: idUsuario,
+            ativo: true
+        });
+
+        // Se houver imagem, envia para o endpoint de imagem
+        if (form.foto && localResponse?.local?.id) {
+            try {
+                await localImageService.addImage(localResponse.local.id, form.foto);
+                console.log('Imagem enviada com sucesso!');
+            } catch (imgError) {
+                console.error('Erro ao enviar imagem:', imgError);
+            }
+        }
         emit('fechar-dialog');
+    } catch (error) {
+        console.error('Erro ao criar local:', error);
     }
+}
 </script>
 
 <style scoped>
-
   .p-floatlabel:has(input.p-filled) label, .p-floatlabel:has(input:focus) label,
   .p-floatlabel:has(textarea.p-filled) label, .p-floatlabel:has(textarea:focus) label,
   .p-floatlabel:has(.p-dropdown.p-filled) label, .p-floatlabel:has(.p-dropdown:focus) label,
@@ -302,6 +340,4 @@
 ::v-deep(.p-inputnumber input::placeholder) {
   color: #666;
 }
-
-
 </style>
