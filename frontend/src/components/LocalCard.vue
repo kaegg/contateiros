@@ -7,7 +7,10 @@
           :key="activity.name"
           class="local-card__activity"
         >
-          <span class="local-card__activity-icon"><i :class="activity.icon" /></span>
+          <span class="local-card__activity-icon">
+          <img v-if="activity.icon && activity.icon.startsWith('data:')" :src="activity.icon" alt="ícone" class="w-4 h-4" />
+          <i v-else :class="activity.icon || 'pi pi-star'" />
+        </span>
           <span class="local-card__activity-name">{{ activity.name }}</span>
         </span>
       </div>

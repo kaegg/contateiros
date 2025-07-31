@@ -32,6 +32,10 @@ class StoreLocalRequest extends FormRequest
             "id_usuario_criacao" => "required|integer|exists:usuario,id",
             "id_usuario_alteracao" => "nullable|integer|exists:usuario,id",
             "ativo" => "required|boolean",
+            "atividades" => "nullable|array",
+            "atividades.*" => "integer|exists:atividade,id",
+            "instalacoes" => "nullable|array",
+            "instalacoes.*" => "integer|exists:instalacao,id",
         ];
     }
 
@@ -73,6 +77,14 @@ class StoreLocalRequest extends FormRequest
 
             "ativo.required" => "O campo ativo deve ser informado.",
             "ativo.boolean" => "O campo ativo deve ser verdadeiro ou falso.",
+
+            "atividades.array" => "As atividades devem ser fornecidas em formato de lista.",
+            "atividades.*.integer" => "Cada atividade deve ser um ID válido.",
+            "atividades.*.exists" => "Uma das atividades informadas não existe.",
+
+            "instalacoes.array" => "As instalações devem ser fornecidas em formato de lista.",
+            "instalacoes.*.integer" => "Cada instalação deve ser um ID válido.",
+            "instalacoes.*.exists" => "Uma das instalações informadas não existe.",
         ];
     }
 }

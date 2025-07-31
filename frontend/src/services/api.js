@@ -25,7 +25,11 @@ export async function apiRequest(endpoint, options = {}) {
     const response = await fetch(url, config);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      const error = new Error(`HTTP error! status: ${response.status}`);
+      error.response = errorData;
+      error.status = response.status;
+      throw error;
     }
     
     return await response.json();
@@ -41,12 +45,12 @@ export const localService = {
   async getAll() {
     return apiRequest('/local');
   },
-
-  // Buscar local específico
+  
+  // Buscar local por ID
   async getById(id) {
     return apiRequest(`/local/${id}`);
   },
-
+  
   // Criar novo local
   async create(localData) {
     return apiRequest('/local', {
@@ -54,7 +58,7 @@ export const localService = {
       body: JSON.stringify(localData),
     });
   },
-
+  
   // Atualizar local
   async update(id, localData) {
     return apiRequest(`/local/${id}`, {
@@ -62,32 +66,76 @@ export const localService = {
       body: JSON.stringify(localData),
     });
   },
-
-  // Desativar local
+  
+  // Deletar local (exclusão lógica)
   async delete(id) {
     return apiRequest(`/local/${id}`, {
       method: 'DELETE',
     });
   },
-
-  // Buscar imagens de um local
+  
+  // Buscar imagens do local
   async getImages(localId) {
     return apiRequest(`/local/${localId}/imagens`);
   },
-
-  // Buscar atividades de um local
+  
+  // Buscar atividades do local
   async getActivities(localId) {
     return apiRequest(`/local/${localId}/atividades`);
   },
-
-  // Buscar instalações de um local
+  
+  // Buscar instalações do local
   async getFacilities(localId) {
     return apiRequest(`/local/${localId}/instalacoes`);
   },
-
-  // Buscar avaliações de um local
+  
+  // Buscar avaliações do local
   async getRatings(localId) {
     return apiRequest(`/local/${localId}/avaliacoes`);
+  },
+};
+
+// Serviços para Avaliações
+export const ratingService = {
+  // Criar nova avaliação
+  async create(ratingData) {
+    return apiRequest('/local-avaliacao', {
+      method: 'POST',
+      body: JSON.stringify(ratingData),
+    });
+  },
+
+  // Atualizar avaliação
+  async update(id, ratingData) {
+    return apiRequest(`/local-avaliacao/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(ratingData),
+    });
+  },
+
+  // Deletar avaliação
+  async delete(id) {
+    return apiRequest(`/local-avaliacao/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Serviços para Imagens
+export const imageService = {
+  // Upload de imagem
+  async upload(imageData) {
+    return apiRequest('/local-imagem', {
+      method: 'POST',
+      body: JSON.stringify(imageData),
+    });
+  },
+
+  // Deletar imagem
+  async delete(id) {
+    return apiRequest(`/local-imagem/${id}`, {
+      method: 'DELETE',
+    });
   },
 };
 

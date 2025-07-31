@@ -7,7 +7,11 @@
       @update:visible="emit('update:visible', $event)"
       class="bg-white! text-black!"
     >
-      <FormCadastroLocal @fechar-dialog="emit('update:visible', false)" />
+      <FormCadastroLocal 
+        :modo="modo" 
+        :localData="local"
+        @fechar-dialog="emit('update:visible', false)" 
+      />
     </Dialog>
   </div>
 </template>
@@ -23,6 +27,10 @@
       type: String,
       default: 'cadastro',
       validator: (value) => ['cadastro', 'edicao'].includes(value)
+    },
+    local: {
+      type: Object,
+      default: null
     }
   });
 

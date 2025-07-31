@@ -1,138 +1,288 @@
 <template>
   <div class="local-detalhe-prototipo">
+    <!-- Header de Pesquisa -->
     <PesquisarLocal @abrir-dialog="abrirDialog" />
-    
+
+    <!-- Loading state -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando local...</p>
+    </div>
+
+    <!-- Error state -->
+    <div v-else-if="error" class="error-container">
+      <h2>Erro ao carregar local</h2>
+      <p>{{ error }}</p>
+      <button @click="carregarLocal" class="retry-btn">Tentar novamente</button>
+    </div>
+
+    <!-- Local content -->
+    <div v-else-if="local" class="local-content">
+      <div class="local-detalhe-header">
+        <div>
+          <h1 class="local-title">
+            {{ local.nome }}
+            <span class="stars">
+              <span v-for="i in 5" :key="i" :class="['star', { filled: i <= ratingMedio }]">★</span>
+            </span>
+          </h1>
+          <div class="local-subtitle">{{ local.estado }} - {{ local.cidade }}</div>
+          <button class="avaliar-btn" @click="scrollToComentario">Avaliar</button>
+        </div>
+      </div>
+      
+      <div class="local-detalhe-main">
+        <div class="mapa-embed">
+          <iframe
+            class="local-mapa-iframe"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3689.234073289889!2d-46.71916768488544!3d-21.93472248551945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94c9c7e2e2e2e2e2%3A0x2e2e2e2e2e2e2e2e!2s%C3%81guas%20da%20Prata%2C%20SP!5e0!3m2!1spt-BR!2sbr!4v1680000000000!5m2!1spt-BR!2sbr"
+            width="100%"
+            height="320"
+            style="border:0; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); background: #eaeaea;"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div class="local-detalhe-info">
+          <LocalInfo
+            :ownerName="local.nome_proprietario"
+            :ownerPhone="local.telefone_proprietario"
+            :capacity="local.capacidade_pessoas"
+            :facilities="facilities"
+            :activities="activities"
+            :creator="local.usuario_criacao?.nome || 'Admin'"
+            @edit="onEditLocal"
+            @delete="onDeleteLocal"
+          />
+        </div>
+      </div>
+      
+      <div class="local-detalhe-fotos" v-if="imagens.length > 0">
+        <h3>Fotos do Local</h3>
+        <div class="fotos-grid">
+          <img v-for="(imagem, idx) in imagens" :key="idx" :src="imagem.url" class="foto" />
+        </div>
+      </div>
+
+      <div class="local-detalhe-descricao" v-if="local.descricao">
+        <h2>Descrição</h2>
+        <p>{{ local.descricao }}</p>
+      </div>
+
+      <div class="local-detalhe-comentarios">
+        <h3>Avaliações e Comentários</h3>
+        <div class="comentarios-lista" v-if="avaliacoes.length > 0">
+          <div v-for="avaliacao in avaliacoes" :key="avaliacao.id" class="comentario-item">
+            <div class="comentario-nome">{{ avaliacao.usuario?.nome || 'Usuário' }}</div>
+            <div class="comentario-estrelas">
+              <span v-for="i in 5" :key="i" :class="['star', { filled: i <= avaliacao.avaliacao }]">★</span>
+            </div>
+            <div class="comentario-texto">{{ avaliacao.comentario }}</div>
+          </div>
+        </div>
+        <div v-else class="sem-comentarios">
+          <p>Nenhuma avaliação ainda. Seja o primeiro a avaliar!</p>
+        </div>
+        <div class="comentario-novo" id="comentario-novo">
+          <h3>Dê sua opinião!</h3>
+          <div class="comentario-novo-estrelas">
+            <span v-for="i in 5" :key="i" :class="['star', { filled: i <= novoComentarioEstrelas }]" @click="novoComentarioEstrelas = i">★</span>
+          </div>
+          <textarea v-model="novoComentarioTexto" placeholder="Faça um comentário..." class="comentario-novo-textarea" rows="2"></textarea>
+          <button class="comentario-novo-btn" @click="enviarComentario" :disabled="enviandoComentario">
+            {{ enviandoComentario ? 'Enviando...' : 'Comentar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edição -->
     <DialogCadastroLocal
       :visible="visivelDialogEdicao"
       modo="edicao"
+      :local="local"
       @update:visible="visivelDialogEdicao = $event"
     />
 
+    <!-- Modal de Cadastro de Atividade -->
     <DialogCadastro
       v-if="modalCadastroVisivel && tipoCadastro === 'atividade'"
       :visible="modalCadastroVisivel"
       tipo="atividade"
       @update:visible="modalCadastroVisivel = $event"
     />
+
+    <!-- Modal de Cadastro de Instalação -->
     <DialogCadastro
       v-if="modalCadastroVisivel && tipoCadastro === 'instalacao'"
       :visible="modalCadastroVisivel"
       tipo="instalacao"
       @update:visible="modalCadastroVisivel = $event"
     />
+
+    <!-- Modal de Confirmação de Exclusão -->
     <ModalConfirmacaoInativacao
       :visible="modalConfirmarExclusao"
       titulo="Inativar Local"
-      :texto="`Tem certeza que quer inativar o local '${local.nome}'`"
+      :texto="`Tem certeza que quer inativar o local '${local?.nome || ''}'? Esta ação não pode ser desfeita.`"
       @confirmar="confirmarExclusao"
       @cancelar="modalConfirmarExclusao = false"
     />
-
-    <div class="local-detalhe-header">
-      <div>
-        <h1 class="local-title">
-          Travessia Poços de Caldas
-          <span class="stars">
-            <span v-for="i in 5" :key="i" :class="['star', { filled: i <= 4 }]">★</span>
-          </span>
-        </h1>
-        <div class="local-subtitle">MG - Águas da Prata</div>
-        <button class="avaliar-btn" @click="scrollToComentario">Avaliar</button>
-      </div>
-    </div>
-    <div class="local-detalhe-main">
-      <div class="mapa-embed">
-        <iframe
-          class="local-mapa-iframe"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3689.234073289889!2d-46.71916768488544!3d-21.93472248551945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94c9c7e2e2e2e2e2%3A0x2e2e2e2e2e2e2e2e!2s%C3%81guas%20da%20Prata%2C%20SP!5e0!3m2!1spt-BR!2sbr!4v1680000000000!5m2!1spt-BR!2sbr"
-          width="100%"
-          height="320"
-          style="border:0; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); background: #eaeaea;"
-          allowfullscreen
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
-      </div>
-      <div class="local-detalhe-info">
-        <LocalInfo
-          :ownerName="local.owner"
-          :ownerPhone="local.phone"
-          :capacity="local.capacity"
-          :facilities="local.facilities"
-          :activities="local.activities"
-          :creator="local.creator"
-          @edit="onEditLocal"
-          @delete="onDeleteLocal"
-        />
-      </div>
-    </div>
-    <div class="local-detalhe-fotos">
-      <div class="fotos-grid">
-        <img v-for="(foto, idx) in local.fotos" :key="idx" :src="foto" class="foto" />
-      </div>
-    </div>
-
-    <div class="local-detalhe-descricao">
-      <h2>Descrição</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ullamcorper elit massa, et molestie est dictum quis. Ut tellus ex, blandit nec cursus sit amet, blandit eget nunc. Mauris suscipit fermentum dolor, at vulputate libero aliquam vel. Proin laoreet ligula id urna congue commodo. Aenean ullamcorper maximus aliquet. Donec et neque luctus, mattis lorem vel, cursus purus. Mauris facilisis ex id purus hendrerit, at lacinia leo semper. Sed ullamcorper augue ac nunc dictum commodo. Aenean suscipit ultricies lacus, quis varius lectus dignissim et.
-      </p>
-      <p>
-        Aenean volutpat ligula nec ornare sagittis. Morbi fermentum ante ut ligula auctor, in posuere nisi scelerisque. Quisque ultricies luctus dapibus. Nullam sit amet arcu nec nulla blandit interdum sit amet vel erat. Nulla leo leo. Vestibulum blandit consequat orci, ut aliquam libero luctus sed. Vivamus suscipit ex at sem dignissim, sed pretium sem hendrerit. Morbi atid elit, ornare id nisl a, commodo vestibulum dui. Etiam quis eros aliquet, fringilla felis et, molestie augue. In ut lacinia tortor. Nullam ullamcorper, mi at placerat porttitor, felis odio congue elit, et iaculis nisi ex vel diam. Cras venenatis maximus tellus et auctor. Fusce gravida neque sit amet leo malesuada ultricies.
-      </p>
-    </div>
-
-    <div class="local-detalhe-comentarios">
-      <div class="comentarios-lista">
-        <div v-for="comentario in comentarios" :key="comentario.id" class="comentario-item">
-          <div class="comentario-nome">{{ comentario.nome }}</div>
-          <div class="comentario-estrelas">
-            <span v-for="i in 5" :key="i" :class="['star', { filled: i <= comentario.estrelas }]">★</span>
-          </div>
-          <div class="comentario-texto">{{ comentario.texto }}</div>
-        </div>
-      </div>
-      <div class="comentario-novo" id="comentario-novo">
-        <h3>Dê sua opinião!</h3>
-        <div class="comentario-novo-estrelas">
-          <span v-for="i in 5" :key="i" :class="['star', { filled: i <= novoComentarioEstrelas }]" @click="novoComentarioEstrelas = i">★</span>
-        </div>
-        <textarea v-model="novoComentarioTexto" placeholder="Faça um comentário..." class="comentario-novo-textarea" rows="2"></textarea>
-        <button class="comentario-novo-btn" @click="enviarComentario">Comentar</button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { localService, ratingService } from '@/services/api.js';
 import LocalInfo from '@/components/LocalInfo.vue';
 import DialogCadastroLocal from '@/components/DialogCadastro/DialogCadastroLocal.vue';
+import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
 import PesquisarLocal from '@/components/PesquisarLocal.vue';
 import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
-import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
 
-const local = ref({
-  nome: 'Travessia Poços de Caldas',
-  owner: 'Henrique Maeda',
-  phone: '(44) 98800-5555',
-  capacity: 100,
-  facilities: ['Banheiro', 'Energia', 'Internet', 'Rede de celular'],
-  activities: ['Jornada', 'Acampamento', 'Day Use'],
-  creator: 'Admin',
-  image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
-  fotos: [
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-    'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80',
-    'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
-  ]
-});
+// Tipos
+interface Local {
+  id: number;
+  nome: string;
+  cidade: string;
+  estado: string;
+  nome_proprietario: string;
+  telefone_proprietario: string;
+  descricao?: string;
+  capacidade_pessoas: number;
+  id_usuario_criacao: number;
+  id_usuario_alteracao?: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+  usuario_criacao?: {
+    id: number;
+    nome: string;
+  };
+  usuario_alteracao?: {
+    id: number;
+    nome: string;
+  };
+  atividades?: Array<{
+    id: number;
+    nome: string;
+    icone: string;
+  }>;
+  instalacoes?: Array<{
+    id: number;
+    nome: string;
+  }>;
+  imagens?: Array<{
+    id: number;
+    url: string;
+  }>;
+  avaliacoes?: Array<{
+    id: number;
+    avaliacao: number;
+    comentario: string;
+    usuario?: {
+      id: number;
+      nome: string;
+    };
+  }>;
+}
 
+interface Imagem {
+  id: number;
+  url: string;
+}
+
+interface Avaliacao {
+  id: number;
+  avaliacao: number;
+  comentario: string;
+  usuario?: {
+    id: number;
+    nome: string;
+  };
+}
+
+const route = useRoute();
+const router = useRouter();
+const local = ref<Local | null>(null);
+const loading = ref(true);
+const error = ref<string | null>(null);
+const imagens = ref<Imagem[]>([]);
+const avaliacoes = ref<Avaliacao[]>([]);
+
+// Dados para novo comentário
+const novoComentarioTexto = ref('');
+const novoComentarioEstrelas = ref(0);
+const enviandoComentario = ref(false);
+
+// Estados dos modais
 const visivelDialogEdicao = ref(false);
 const modalConfirmarExclusao = ref(false);
 const modalCadastroVisivel = ref(false);
 const tipoCadastro = ref('atividade');
+
+// Computed properties
+const ratingMedio = computed(() => {
+  if (!avaliacoes.value || avaliacoes.value.length === 0) return 0;
+  const sum = avaliacoes.value.reduce((total, av) => total + av.avaliacao, 0);
+  return Math.round(sum / avaliacoes.value.length);
+});
+
+const activities = computed(() => {
+  if (!local.value?.atividades) return [];
+  return local.value.atividades.map(atividade => atividade.nome);
+});
+
+const facilities = computed(() => {
+  if (!local.value?.instalacoes) return [];
+  return local.value.instalacoes.map(instalacao => instalacao.nome);
+});
+
+// Funções
+async function carregarLocal() {
+  try {
+    loading.value = true;
+    error.value = null;
+    
+    const localId = route.params.id;
+    const response = await localService.getById(localId);
+    
+    if (response.success) {
+      local.value = response.local;
+      
+      // Carregar imagens
+      try {
+        const imagensResponse = await localService.getImages(localId);
+        if (imagensResponse.success) {
+          imagens.value = imagensResponse.imagens || [];
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar imagens:', err);
+        imagens.value = [];
+      }
+      
+      // Carregar avaliações
+      try {
+        const avaliacoesResponse = await localService.getRatings(localId);
+        if (avaliacoesResponse.success) {
+          avaliacoes.value = avaliacoesResponse.avaliacoes || [];
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar avaliações:', err);
+        avaliacoes.value = [];
+      }
+    } else {
+      error.value = response.message || 'Erro ao carregar local';
+    }
+  } catch (err: any) {
+    console.error('Erro ao carregar local:', err);
+    error.value = err.message || 'Erro ao carregar local';
+  } finally {
+    loading.value = false;
+  }
+}
 
 function scrollToComentario() {
   const el = document.getElementById('comentario-novo');
@@ -147,10 +297,26 @@ function onDeleteLocal() {
   modalConfirmarExclusao.value = true;
 }
 
-function confirmarExclusao() {
-  modalConfirmarExclusao.value = false;
-  // Aqui você pode colocar a lógica real de inativação/exclusão
-  alert('Local inativado!');
+async function confirmarExclusao() {
+  try {
+    const localId = route.params.id;
+    console.log('Tentando inativar local:', localId);
+    
+    const response = await localService.delete(localId);
+    console.log('Resposta da inativação:', response);
+    
+    if (response.success || response.status) {
+      modalConfirmarExclusao.value = false;
+      alert('Local inativado com sucesso!');
+      // Redirecionar para home
+      router.push('/');
+    } else {
+      throw new Error(response.message || 'Erro desconhecido');
+    }
+  } catch (err: any) {
+    console.error('Erro ao inativar local:', err);
+    alert('Erro ao inativar local: ' + (err.message || 'Erro desconhecido'));
+  }
 }
 
 function abrirDialog(tipo: string) {
@@ -158,25 +324,52 @@ function abrirDialog(tipo: string) {
   modalCadastroVisivel.value = true;
 }
 
-const comentarios = ref([
-  { id: 1, nome: 'Raphael Ichiro', estrelas: 5, texto: 'Muito Bom!' },
-  { id: 2, nome: 'Raquel Teixeira', estrelas: 1, texto: 'Péssimo!' },
-  { id: 3, nome: 'Renan Sylos', estrelas: 3, texto: 'Mediano.' },
-]);
-const novoComentarioTexto = ref('');
-const novoComentarioEstrelas = ref(0);
-function enviarComentario() {
+async function enviarComentario() {
   if (novoComentarioTexto.value.trim() && novoComentarioEstrelas.value > 0) {
-    comentarios.value.push({
-      id: comentarios.value.length + 1,
-      nome: 'Você',
-      estrelas: novoComentarioEstrelas.value,
-      texto: novoComentarioTexto.value,
-    });
-    novoComentarioTexto.value = '';
-    novoComentarioEstrelas.value = 0;
+    try {
+      enviandoComentario.value = true;
+      
+      const localId = route.params.id;
+      const ratingData = {
+        id_local: localId,
+        avaliacao: novoComentarioEstrelas.value,
+        comentario: novoComentarioTexto.value,
+        id_usuario: 1, // TODO: Pegar ID do usuário logado
+        ativo: true
+      };
+      
+      const response = await ratingService.create(ratingData);
+      
+      if (response.success) {
+        // Recarregar avaliações
+        const avaliacoesResponse = await localService.getRatings(localId);
+        if (avaliacoesResponse.success) {
+          avaliacoes.value = avaliacoesResponse.avaliacoes || [];
+        }
+        
+        // Limpar formulário
+        novoComentarioTexto.value = '';
+        novoComentarioEstrelas.value = 0;
+        
+        alert('Avaliação enviada com sucesso!');
+      } else {
+        alert('Erro ao enviar avaliação: ' + (response.message || 'Erro desconhecido'));
+      }
+    } catch (err: any) {
+      console.error('Erro ao enviar comentário:', err);
+      alert('Erro ao enviar comentário: ' + (err.message || 'Erro desconhecido'));
+    } finally {
+      enviandoComentario.value = false;
+    }
+  } else {
+    alert('Por favor, preencha todos os campos e selecione uma avaliação.');
   }
 }
+
+// Carregar dados quando o componente for montado
+onMounted(() => {
+  carregarLocal();
+});
 </script>
 
 <style scoped>
@@ -188,6 +381,62 @@ function enviarComentario() {
   flex-direction: column;
   align-items: center;
 }
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #219653;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  text-align: center;
+}
+
+.retry-btn {
+  background: #219653;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #176b43;
+}
+
+.local-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .local-detalhe-header {
   width: 100%;
   max-width: 1100px;
@@ -276,6 +525,12 @@ function enviarComentario() {
   margin: 32px auto 0 auto;
   width: 100%;
 }
+.local-detalhe-fotos h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 1rem;
+}
 .fotos-grid {
   display: flex;
   gap: 16px;
@@ -316,6 +571,18 @@ function enviarComentario() {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 2rem;
+}
+.local-detalhe-comentarios h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 1rem;
+}
+.sem-comentarios {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
 }
 .comentarios-lista {
   display: flex;
@@ -380,8 +647,12 @@ function enviarComentario() {
   cursor: pointer;
   transition: background 0.2s;
 }
-.comentario-novo-btn:hover {
+.comentario-novo-btn:hover:not(:disabled) {
   background: #176b43;
+}
+.comentario-novo-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 .modal-overlay {
   position: fixed;

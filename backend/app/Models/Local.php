@@ -76,10 +76,6 @@ class Local extends Model
      */
     public function desativarComCascata()
     {
-        // Desativa o local
-        $this->ativo = false;
-        $this->save();
-
         // Desativa todas as imagens do local
         $this->imagens()->update(['ativo' => false]);
 

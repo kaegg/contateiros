@@ -10,7 +10,23 @@ declare module '@/services/api.js' {
     getFacilities(localId: any): Promise<any>;
     getRatings(localId: any): Promise<any>;
   };
+  
+  export const ratingService: {
+    create(ratingData: any): Promise<any>;
+    update(id: any, ratingData: any): Promise<any>;
+    delete(id: any): Promise<any>;
+  };
+  
+  export const imageService: {
+    upload(imageData: any): Promise<any>;
+    delete(id: any): Promise<any>;
+  };
+  
   export const activityService: {
+    getAll(): Promise<any>;
+  };
+  
+  export const facilityService: {
     getAll(): Promise<any>;
   };
 }

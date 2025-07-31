@@ -6,7 +6,9 @@
       :visible="showEditDialog"
       tipo="atividade"
       titulo="Editar atividade"
+      :dados-edicao="atividadeParaEditar"
       @update:visible="showEditDialog = $event"
+      @editado="onAtividadeEditada"
     />
     <ModalConfirmacaoInativacao
       :visible="showDeleteDialog"
@@ -47,7 +49,8 @@
           <td>{{ atividade.codigo }}</td>
           <td>
             <span class="icone-wrapper">
-              <i :class="['atividade-icone', atividade.icone]" />
+              <img :src="atividade.icone" class="atividade-icone" v-if="atividade.icone.startsWith('data:') || atividade.icone.startsWith('http')" />
+              <i :class="['atividade-icone', atividade.icone]" v-else />
             </span>
           </td>
           <td>{{ atividade.nome }}</td>
@@ -87,32 +90,69 @@
 import { ref, computed, watch } from 'vue'
 import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
 import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
+import { onMounted } from 'vue'
+import axios from 'axios'
+import { useToast } from 'primevue/usetoast'
 
-// Substituir os ícones SVG por PrimeIcons conforme o filtro de atividades
-const atividades = ref([
-  { codigo: '#ACMPMNT1', icone: 'pi pi-home', nome: 'Acampamento', status: 'Ativo' },
-  { codigo: '#JRND1', icone: 'pi pi-users', nome: 'Jornada', status: 'Ativo' },
-  { codigo: '#DS1', icone: 'pi pi-sun', nome: 'Day Use', status: 'Ativo' },
-  { codigo: '#FTBL1', icone: 'pi pi-compass', nome: 'Futebol', status: 'Inativo' },
-])
+const atividades = ref([])
+const toast = useToast()
 
+async function buscarAtividades() {
+  try {
+    const response = await axios.get('http://localhost:8000/api/atividade')
+    const data = response.data.atividades
+    atividades.value = data.map(a => ({
+      id: a.id,
+      codigo: a.codigo,
+      nome: a.nome,
+      status: a.ativo ? 'Ativo' : 'Inativo',
+      icone: a.icone
+    }))
+  } catch (error) {
+    console.error('Erro ao buscar atividades:', error)
+  }
+}
+
+onMounted(buscarAtividades);
 const search = ref('')
 const rowsPerPage = ref(10)
 const currentPage = ref(1)
 const showEditDialog = ref(false);
 const showDeleteDialog = ref(false);
 const atividadeParaExcluir = ref(null);
+const atividadeParaEditar = ref(null);
+
+function onAtividadeEditada() {
+  buscarAtividades();
+}
 
 function openEditDialog(atividade) {
+  atividadeParaEditar.value = { ...atividade, id: atividade.id };
   showEditDialog.value = true;
 }
 function openDeleteDialog(atividade) {
-  atividadeParaExcluir.value = atividade;
+  atividadeParaExcluir.value = { ...atividade, id: atividade.id };
   showDeleteDialog.value = true;
 }
-function confirmarExclusao() {
+async function confirmarExclusao() {
+  if (!atividadeParaExcluir.value) return;
   showDeleteDialog.value = false;
-  // Aqui pode ser implementada a lógica real de exclusão
+  try {
+    await axios.delete(`http://localhost:8000/api/atividade/${atividadeParaExcluir.value.id}`);
+    toast.add({
+      severity: 'success',
+      summary: 'Atividade inativada com sucesso!',
+      life: 3000
+    });
+    await buscarAtividades();
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erro ao inativar atividade',
+      detail: error.message,
+      life: 3000
+    });
+  }
 }
 
 const filteredAtividades = computed(() => {

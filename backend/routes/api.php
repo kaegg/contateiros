@@ -23,15 +23,25 @@ Route::delete('/usuario/{usuario}', [UsuarioController::class, 'destroy']);
 
 Route::get("/atividade", [AtividadeController::class, "index"]);
 Route::post("/atividade", [AtividadeController::class, "store"]);
+Route::put('/atividade/{atividade}', [AtividadeController::class, 'update']);
+Route::delete('/atividade/{atividade}', [AtividadeController::class, 'destroy']);
 
 Route::get("/instalacao", [InstalacaoController::class, "index"]);
 Route::post("/instalacao", [InstalacaoController::class, "store"]);
+Route::put('/instalacao/{instalacao}', [InstalacaoController::class, 'update']);
+Route::delete('/instalacao/{instalacao}', [InstalacaoController::class, 'destroy']);
 
 Route::get("/local", [LocalController::class, "index"]);
 Route::post("/local", [LocalController::class, "store"]);
 Route::get("/local/{local}", [LocalController::class, "show"]);
 Route::put("/local/{local}", [LocalController::class, "update"]);
 Route::delete("/local/{local}", [LocalController::class, "destroy"]);
+
+// Rotas para dados específicos do local
+Route::get("/local/{local}/imagens", [LocalController::class, "getImages"]);
+Route::get("/local/{local}/atividades", [LocalController::class, "getActivities"]);
+Route::get("/local/{local}/instalacoes", [LocalController::class, "getFacilities"]);
+Route::get("/local/{local}/avaliacoes", [LocalController::class, "getRatings"]);
 
 // Rotas para imagens de locais
 Route::get("/local/{local}/imagens", [LocalImagemController::class, "index"]);

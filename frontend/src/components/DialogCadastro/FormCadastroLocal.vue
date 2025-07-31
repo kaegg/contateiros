@@ -107,21 +107,24 @@
         <!-- Instalações -->
         <div class="mt-8">
             Instalações
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+            <div v-if="instalacoes.length === 0" class="text-gray-500 text-sm mt-2">
+                Carregando instalações disponíveis...
+            </div>
+            <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
                 <div 
                     v-for="instalacao in instalacoes" 
-                    :key="instalacao"
-                    @click="toggleInstalacao(instalacao)"
+                    :key="instalacao.id"
+                    @click="toggleInstalacao(instalacao.id)"
                     :class="[
                         'px-3 py-2 text-sm font-medium cursor-pointer transition-all duration-200 text-center',
                         'rounded-full',
-                        form.instalacoes.includes(instalacao)
+                        form.instalacoes.includes(instalacao.id)
                             ? 'border-2 border-[#3E9957] bg-[#3E9957] text-white'
                             : 'border-2 border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                     ]"
                     style="min-width: 0;"
                 >
-                    {{ instalacao }}
+                    {{ instalacao.nome }}
                 </div>
             </div>
         </div>
@@ -129,21 +132,24 @@
         <!-- Atividades -->
         <div class="mt-8">
             Atividades
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-2">
+            <div v-if="atividades.length === 0" class="text-gray-500 text-sm mt-2">
+                Carregando atividades disponíveis...
+            </div>
+            <div v-else class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-2">
                 <div 
                     v-for="atividade in atividades" 
-                    :key="atividade"
-                    @click="toggleAtividade(atividade)"
+                    :key="atividade.id"
+                    @click="toggleAtividade(atividade.id)"
                     :class="[
                         'px-3 py-2 text-sm font-medium cursor-pointer transition-all duration-200 text-center',
                         'rounded-full',
-                        form.atividades.includes(atividade)
+                        form.atividades.includes(atividade.id)
                             ? 'border-2 border-[#3E9957] bg-[#3E9957] text-white'
                             : 'border-2 border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                     ]"
                     style="min-width: 0;"
                 >
-                    {{ atividade }}
+                    {{ atividade.nome }}
                 </div>
             </div>
         </div>
@@ -166,12 +172,21 @@
         </div>
 
         <!-- Botões -->
-        <div class="flex justify-start gap-4 mt-8">
-            <Button class="btSalvar text-white px-4! py-2! rounded-2xl!" @click="criarLocal">
-                <i class="pi pi-save"></i>
-                Criar
+        <div class="flex gap-4 justify-end mt-8">
+            <Button 
+                class="text-white! border border-green-600! bg-green-600! hover:bg-green-700! hover:border-green-700! px-4! py-2! rounded-2xl!" 
+                @click="criarLocal"
+                :disabled="loading"
+            >
+                <i v-if="loading" class="pi pi-spinner pi-spin mr-2"></i>
+                <i v-else class="pi pi-save"></i>
+                {{ loading ? (isEditMode ? 'Atualizando...' : 'Criando...') : (isEditMode ? 'Atualizar' : 'Criar') }}
             </Button>
-            <Button class="text-white! border border-red-600! bg-red-600! hover:bg-red-700! hover:border-red-700! px-4! py-2! rounded-2xl!" @click="emit('fechar-dialog')">
+            <Button 
+                class="text-white! border border-red-600! bg-red-600! hover:bg-red-700! hover:border-red-700! px-4! py-2! rounded-2xl!" 
+                @click="emit('fechar-dialog')"
+                :disabled="loading"
+            >
                 <i class="pi pi-ban"></i>
                 Cancelar
             </Button>
@@ -180,8 +195,8 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue';
-import { localService } from '@/services/api.js';
+import { reactive, onMounted, ref, watch, computed } from 'vue';
+import { localService, activityService, facilityService } from '@/services/api.js';
 import { localImageService } from '@/services/localImageService.js';
 import { Form }                  from '@primevue/forms';
 import InputText                 from 'primevue/inputtext';
@@ -191,8 +206,19 @@ import FloatLabel                from 'primevue/floatlabel';
 import Button                    from 'primevue/button';
 import ImportarIcone             from './ImportarIcone.vue';
 import Dropdown                  from 'primevue/dropdown';
+import { useToast }              from 'primevue/usetoast';
+
+// Props para modo de edição
+const props = defineProps<{
+  modo?: 'cadastro' | 'edicao';
+  localData?: any; // Dados do local para edição
+}>();
 
 const emit = defineEmits(['fechar-dialog']);
+
+const toast = useToast();
+const loading = ref(false);
+const isEditMode = computed(() => props.modo === 'edicao');
 
 const form = reactive({
     nome: '',
@@ -202,8 +228,8 @@ const form = reactive({
     celular: '',
     capacidade: null as number | null,
     foto: null as string | null,
-    instalacoes: [] as string[],
-    atividades: [] as string[],
+    instalacoes: [] as number[],
+    atividades: [] as number[],
     descricao: ''
 });
 
@@ -217,8 +243,10 @@ const isCampoFocused = reactive({
     descricao: false
 });
 
-const instalacoes = ['Banheiro', 'Energia', 'Internet', 'Rede Celular'];
-const atividades = ['Jornada', 'Acampamento', 'Day Use', 'Trilhas', 'Eventos'];
+// Arrays para armazenar as opções do backend
+const instalacoes = reactive([] as any[]);
+const atividades = reactive([] as any[]);
+
 const estados = [
     { label: 'AC', value: 'AC' }, { label: 'AL', value: 'AL' }, { label: 'AP', value: 'AP' }, { label: 'AM', value: 'AM' },
     { label: 'BA', value: 'BA' }, { label: 'CE', value: 'CE' }, { label: 'DF', value: 'DF' }, { label: 'ES', value: 'ES' },
@@ -228,6 +256,62 @@ const estados = [
     { label: 'RS', value: 'RS' }, { label: 'RO', value: 'RO' }, { label: 'RR', value: 'RR' }, { label: 'SC', value: 'SC' },
     { label: 'SP', value: 'SP' }, { label: 'SE', value: 'SE' }, { label: 'TO', value: 'TO' }
 ];
+
+// Carregar dados do backend
+onMounted(async () => {
+    try {
+        console.log('Carregando dados do backend...');
+        
+        // Carregar atividades
+        const atividadesResponse = await activityService.getAll();
+        console.log('Resposta atividades:', atividadesResponse);
+        if (atividadesResponse.success) {
+            atividades.push(...atividadesResponse.atividades);
+            console.log('Atividades carregadas:', atividades);
+        } else {
+            console.error('Erro ao carregar atividades:', atividadesResponse.message);
+        }
+
+        // Carregar instalações
+        const instalacoesResponse = await facilityService.getAll();
+        console.log('Resposta instalações:', instalacoesResponse);
+        if (instalacoesResponse.success) {
+            instalacoes.push(...instalacoesResponse.instalacoes);
+            console.log('Instalações carregadas:', instalacoes);
+        } else {
+            console.error('Erro ao carregar instalações:', instalacoesResponse.message);
+        }
+
+        // Se estiver em modo de edição, carregar dados do local
+        if (isEditMode.value && props.localData) {
+            carregarDadosLocal(props.localData);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+    }
+});
+
+// Função para carregar dados do local em modo de edição
+function carregarDadosLocal(localData: any) {
+    console.log('Carregando dados do local para edição:', localData);
+    
+    form.nome = localData.nome || '';
+    form.cidade = localData.cidade || '';
+    form.estado = localData.estado || '';
+    form.proprietario = localData.nome_proprietario || '';
+    form.celular = localData.telefone_proprietario || '';
+    form.capacidade = localData.capacidade_pessoas || null;
+    form.descricao = localData.descricao || '';
+    
+    // Carregar atividades e instalações associadas
+    if (localData.atividades) {
+        form.atividades = localData.atividades.map((atividade: any) => atividade.id);
+    }
+    
+    if (localData.instalacoes) {
+        form.instalacoes = localData.instalacoes.map((instalacao: any) => instalacao.id);
+    }
+}
 
 // Handler do evento de imagem do ImportarIcone
 const onImagemSelecionada = (file: File | null) => {
@@ -242,52 +326,114 @@ const onImagemSelecionada = (file: File | null) => {
     }
 };
 
-function toggleInstalacao(instalacao: string) {
-    const index = form.instalacoes.indexOf(instalacao);
+function toggleInstalacao(instalacaoId: number) {
+    const index = form.instalacoes.indexOf(instalacaoId);
     if (index > -1) {
         form.instalacoes.splice(index, 1);
     } else {
-        form.instalacoes.push(instalacao);
+        form.instalacoes.push(instalacaoId);
     }
 }
 
-function toggleAtividade(atividade: string) {
-    const index = form.atividades.indexOf(atividade);
+function toggleAtividade(atividadeId: number) {
+    const index = form.atividades.indexOf(atividadeId);
     if (index > -1) {
         form.atividades.splice(index, 1);
     } else {
-        form.atividades.push(atividade);
+        form.atividades.push(atividadeId);
     }
 }
 
 async function criarLocal() {
+    if (!form.nome || !form.cidade || !form.estado || !form.proprietario || !form.celular || !form.capacidade) {
+        toast.add({
+            severity: 'error',
+            summary: 'Campos obrigatórios',
+            detail: 'Por favor, preencha todos os campos obrigatórios.',
+            life: 3000
+        });
+        return;
+    }
+
+    loading.value = true;
+
     try {
-        // Substitua pelo id do usuário logado
-        const idUsuario = 1;
-        const localResponse = await localService.create({
+        const dadosLocal: any = {
             nome: form.nome,
             cidade: form.cidade,
             estado: form.estado,
             nome_proprietario: form.proprietario,
             telefone_proprietario: form.celular,
-            descricao: form.descricao,
             capacidade_pessoas: form.capacidade,
-            id_usuario_criacao: idUsuario,
+            id_usuario_criacao: 1, // TODO: Pegar ID do usuário logado
+            id_usuario_alteracao: 1, // TODO: Pegar ID do usuário logado
             ativo: true
-        });
+        };
 
-        // Se houver imagem, envia para o endpoint de imagem
-        if (form.foto && localResponse?.local?.id) {
-            try {
-                await localImageService.addImage(localResponse.local.id, form.foto);
-                console.log('Imagem enviada com sucesso!');
-            } catch (imgError) {
-                console.error('Erro ao enviar imagem:', imgError);
+        // Adicionar descrição se fornecida
+        if (form.descricao) {
+            dadosLocal.descricao = form.descricao;
+        }
+
+        // Adicionar atividades e instalações se selecionadas
+        if (form.atividades.length > 0) {
+            dadosLocal.atividades = form.atividades;
+        }
+        if (form.instalacoes.length > 0) {
+            dadosLocal.instalacoes = form.instalacoes;
+        }
+
+        let localResponse;
+        
+        if (isEditMode.value && props.localData) {
+            // Modo de edição
+            console.log('Atualizando local:', dadosLocal);
+            localResponse = await localService.update(props.localData.id, dadosLocal);
+            
+            if (localResponse.success) {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Local atualizado com sucesso!',
+                    life: 3000
+                });
+            }
+        } else {
+            // Modo de criação
+            console.log('Criando local:', dadosLocal);
+            localResponse = await localService.create(dadosLocal);
+            
+            if (localResponse.success) {
+                // Se houver imagem, envia para o endpoint de imagem
+                if (form.foto && localResponse?.local?.id) {
+                    try {
+                        await localImageService.addImage(localResponse.local.id, form.foto);
+                        console.log('Imagem enviada com sucesso!');
+                    } catch (imgError) {
+                        console.error('Erro ao enviar imagem:', imgError);
+                    }
+                }
+                
+                toast.add({
+                    severity: 'success',
+                    summary: 'Local criado com sucesso!',
+                    life: 3000
+                });
             }
         }
+        
         emit('fechar-dialog');
-    } catch (error) {
-        console.error('Erro ao criar local:', error);
+        
+    } catch (error: any) {
+        console.error('Erro ao salvar local:', error);
+        
+        toast.add({
+            severity: 'error',
+            summary: 'Erro ao salvar local',
+            detail: error.response?.message || error.message || 'Erro desconhecido',
+            life: 3000
+        });
+    } finally {
+        loading.value = false;
     }
 }
 </script>
@@ -313,12 +459,15 @@ async function criarLocal() {
     min-height: 2.5rem;
     font-size: 1rem;
     background: transparent;
-    color: var(--color-black);
+    color: black !important;
   }
   .custom-dropdown .p-dropdown {
     border-radius: 0.75rem;
     border: 1px solid #000;
     background: transparent;
+  }
+  ::v-deep(.p-select-label){
+    color: black !important;
   }
 
   ::v-deep(.p-inputnumber) {
@@ -337,7 +486,16 @@ async function criarLocal() {
   width: 100%;
 }
 
-::v-deep(.p-inputnumber input::placeholder) {
-  color: #666;
-}
+  ::v-deep(.p-inputnumber input::placeholder) {
+    color: #666;
+  }
+
+  /* Placeholder do dropdown */
+  ::v-deep(.p-dropdown-label.p-placeholder) {
+    color: #666 !important;
+  }
+  
+  ::v-deep(.p-dropdown .p-dropdown-label.p-placeholder) {
+    color: #666 !important;
+  }
 </style>

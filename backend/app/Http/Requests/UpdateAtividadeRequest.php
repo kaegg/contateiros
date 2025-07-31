@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StoreAtividadeRequest extends FormRequest
+class UpdateAtividadeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,10 +22,18 @@ class StoreAtividadeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $atividadeRoute = $this->route('atividade');
+$atividadeId = is_object($atividadeRoute) ? $atividadeRoute->id : $atividadeRoute;
+        
         return [
-            "codigo" => "required|string|max:10|unique:App\Models\Atividade,codigo",
+            "codigo" => [
+                "required",
+                "string",
+                "max:10",
+                Rule::unique('atividade', 'codigo')->ignore($atividadeId)
+            ],
             "nome"   => "required|string|max:255",
-            "icone"  => "required|file|mimes:jpeg,jpg,png,svg|max:2048", // até 2MB
+            "icone"  => "nullable|file|mimes:jpeg,jpg,png,svg|max:2048", // opcional na atualização
             "ativo"  => "required|boolean",
         ];
     }
@@ -46,13 +55,12 @@ class StoreAtividadeRequest extends FormRequest
             "nome.string"   => "O nome deve ser um texto.",
             "nome.max"      => "O nome deve ter no máximo 255 caracteres.",
 
-            "icone.required"  => "O ícone deve ser enviado.",
             "icone.file"      => "O ícone deve ser um arquivo válido.",
-            "icone.mimes"     => "O ícone deve estar no formato JPEG, JPG, PNG ou SVG.",
-            "icone.max"       => "O ícone deve ter no máximo 2 MB.",
+            "icone.mimes"     => "O ícone deve ser um arquivo do tipo: jpeg, jpg, png, svg.",
+            "icone.max"       => "O ícone deve ter no máximo 2MB.",
 
-            "ativo.required"  => "O campo ativo deve ser informado.",
-            "ativo.boolean"   => "O campo ativo deve ser verdadeiro ou falso.",
+            "ativo.required" => "O status ativo deve ser informado.",
+            "ativo.boolean"  => "O status ativo deve ser verdadeiro ou falso.",
         ];
     }
 }

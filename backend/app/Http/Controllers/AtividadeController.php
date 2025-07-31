@@ -101,7 +101,7 @@ class AtividadeController extends Controller
      */
     public function index()
     {
-        $atividades = Atividade::get();
+        $atividades = Atividade::where('ativo', true)->get();
         
         if ($atividades->isEmpty()) {
             
@@ -131,31 +131,28 @@ class AtividadeController extends Controller
      */
     public function store(StoreAtividadeRequest $request)
     {
-        // Log::info("teste controller AtividadeController@store");
-
-
-        // Log::info('Recebendo POST em FuncaoController@store', [
-        //     'request' => $request->all(),
-        //     'files' => $request->file('icone')
-        // ]);
-
-        
         $validated = $request->validated();
 
-        // Log::info("Dados validados: " . json_encode($validated));
+        // Processar o arquivo de ícone como base64
+        $iconeFile = $request->file('icone');
+        $iconeBase64 = null;
+        
+        if ($iconeFile) {
+            $mimeType = $iconeFile->getMimeType(); // image/png
+            $iconeContent = file_get_contents($iconeFile->getRealPath());
+            $iconeBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($iconeContent);
+        }
 
         $atividade = Atividade::create([
             "codigo" => $validated["codigo"],
             "nome"   => $validated["nome"],
-            "icone"  => $validated["icone"],
+            "icone"  => $iconeBase64,
             "ativo"  => $validated["ativo"],
         ]);
 
-        // Log::info("Função criada: " . json_encode($atividade));
-
         return response()->json([
             'status'  => true,
-            'message' => "Função criada sucesso!",
+            'message' => "Atividade criada com sucesso!",
             'atividade'  => $atividade
         ], 201);
     }
@@ -179,9 +176,32 @@ class AtividadeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Atividade $atividade)
+    public function update(StoreAtividadeRequest $request, Atividade $atividade)
     {
-        //
+        $validated = $request->validated();
+
+        // Processar o arquivo de ícone como base64 se fornecido
+        $iconeBase64 = $atividade->icone; // Manter o ícone atual por padrão
+        
+        if ($request->hasFile('icone')) {
+            $iconeFile = $request->file('icone');
+            $mimeType = $iconeFile->getMimeType();
+            $iconeContent = file_get_contents($iconeFile->getRealPath());
+            $iconeBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($iconeContent);
+        }
+
+        $atividade->update([
+            "codigo" => $validated["codigo"],
+            "nome"   => $validated["nome"],
+            "icone"  => $iconeBase64,
+            "ativo"  => $validated["ativo"],
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Atividade atualizada com sucesso!",
+            'atividade' => $atividade
+        ], 200);
     }
 
     /**
@@ -189,6 +209,13 @@ class AtividadeController extends Controller
      */
     public function destroy(Atividade $atividade)
     {
-        //
+        $atividade->ativo = false;
+        $atividade->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Atividade inativada com sucesso!",
+            'atividade' => $atividade
+        ], 200);
     }
 }

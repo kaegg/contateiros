@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreInstalacaoRequest;
 use App\Models\Instalacao;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InstalacaoController extends Controller
 {
@@ -13,16 +14,18 @@ class InstalacaoController extends Controller
      */
     public function index()
     {
-        $instalacoes = Instalacao::get();
+        $instalacoes = Instalacao::where('ativo', true)->get();
+        
+        // Log para debug
+        Log::info('Instalações encontradas: ' . $instalacoes->count());
         
         if ($instalacoes->isEmpty()) {
-            
+            Log::warning('Nenhuma instalação ativa encontrada no banco');
             return response()->json([
                 "success" => false,
                 "message" => "Nenhuma instalação encontrada."
             ], 404);
         }
-
 
         return response()->json([
             "success"    => true,
@@ -77,9 +80,21 @@ class InstalacaoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Instalacao $instalacao)
+    public function update(StoreInstalacaoRequest $request, Instalacao $instalacao)
     {
-        //
+        $validated = $request->validated();
+        
+        $instalacao->update([
+            'codigo' => $validated['codigo'],
+            'nome' => $validated['nome'],
+            'ativo' => $validated['ativo'] ?? true,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Instalação atualizada com sucesso!',
+            'instalacao' => $instalacao
+        ]);
     }
 
     /**
@@ -87,6 +102,12 @@ class InstalacaoController extends Controller
      */
     public function destroy(Instalacao $instalacao)
     {
-        //
+        $instalacao->ativo = false;
+        $instalacao->save();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Instalação inativada com sucesso!'
+        ]);
     }
 }

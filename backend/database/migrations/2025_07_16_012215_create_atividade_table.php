@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('atividade', function (Blueprint $table) {
             $table->id();
-            $table->string("codigo", length: 10)->nullable(false);
+            $table->string("codigo", length: 50)->nullable(false);
             $table->string("nome"  )->nullable(false);
-            $table->binary("icone" )->nullable(false);
+            $table->text("icone" )->nullable(false);
             $table->boolean("ativo")->nullable(false);
             $table->timestamps();
         });

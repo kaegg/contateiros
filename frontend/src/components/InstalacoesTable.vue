@@ -6,7 +6,9 @@
       :visible="showEditDialog"
       tipo="instalacao"
       titulo="Editar instalação"
+      :dados-edicao="instalacaoParaEditar"
       @update:visible="showEditDialog = $event"
+      @editado="onInstalacaoEditada"
     />
     <ModalConfirmacaoInativacao
       :visible="showDeleteDialog"
@@ -81,13 +83,35 @@
 import { ref, computed, watch } from 'vue'
 import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
 import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
+import { onMounted } from 'vue'
+import axios from 'axios'
+import { useToast } from 'primevue/usetoast'
 
-const instalacoes = ref([
-  { codigo: '#BNHR1', icone: 'pi pi-bath', nome: 'Banheiro', status: 'Ativo' },
-  { codigo: '#ENGR1', icone: 'pi pi-bolt', nome: 'Energia', status: 'Ativo' },
-  { codigo: '#INT1', icone: 'pi pi-wifi', nome: 'Internet', status: 'Ativo' },
-  { codigo: '#CEL1', icone: 'pi pi-mobile', nome: 'Rede Celular', status: 'Inativo' },
-])
+const instalacoes = ref([])
+const toast = useToast()
+
+async function buscarInstalacoes() {
+  try {
+    const response = await axios.get('http://localhost:8000/api/instalacao')
+    const data = response.data.instalacoes
+    instalacoes.value = data.map(i => ({
+      id: i.id,
+      codigo: i.codigo,
+      nome: i.nome,
+      status: i.ativo ? 'Ativo' : 'Inativo'
+    }))
+  } catch (error) {
+    console.error('Erro ao buscar instalações:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Erro ao carregar instalações',
+      detail: 'Não foi possível carregar a lista de instalações.',
+      life: 3000
+    })
+  }
+}
+
+onMounted(buscarInstalacoes)
 
 const search = ref('')
 const rowsPerPage = ref(10)
@@ -95,17 +119,39 @@ const currentPage = ref(1)
 const showEditDialog = ref(false);
 const showDeleteDialog = ref(false);
 const instalacaoParaExcluir = ref(null);
+const instalacaoParaEditar = ref(null);
+
+function onInstalacaoEditada() {
+  buscarInstalacoes();
+}
 
 function openEditDialog(instalacao) {
+  instalacaoParaEditar.value = { ...instalacao, id: instalacao.id };
   showEditDialog.value = true;
 }
 function openDeleteDialog(instalacao) {
-  instalacaoParaExcluir.value = instalacao;
+  instalacaoParaExcluir.value = { ...instalacao, id: instalacao.id };
   showDeleteDialog.value = true;
 }
-function confirmarExclusao() {
+async function confirmarExclusao() {
+  if (!instalacaoParaExcluir.value) return;
   showDeleteDialog.value = false;
-  // Lógica real de exclusão pode ser implementada aqui
+  try {
+    await axios.delete(`http://localhost:8000/api/instalacao/${instalacaoParaExcluir.value.id}`);
+    toast.add({
+      severity: 'success',
+      summary: 'Instalação inativada com sucesso!',
+      life: 3000
+    });
+    await buscarInstalacoes();
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erro ao inativar instalação',
+      detail: error.message,
+      life: 3000
+    });
+  }
 }
 
 const filteredInstalacoes = computed(() => {

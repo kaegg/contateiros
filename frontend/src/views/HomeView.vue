@@ -51,9 +51,17 @@
     </div>
   </div>
 
+  <!-- Modal de Confirmação de Exclusão -->
+  <ModalConfirmacaoInativacao
+    :visible="modalConfirmarExclusao"
+    titulo="Inativar Local"
+    :texto="`Tem certeza que quer inativar o local '${localParaExcluir?.nome || ''}'? Esta ação não pode ser desfeita.`"
+    @confirmar="confirmarExclusao"
+    @cancelar="modalConfirmarExclusao = false"
+  />
+
   <!-- <AtividadesTable /> -->
 
-  <h1 class="text-black">Home View</h1>
 </template>
 
 <script setup>
@@ -64,6 +72,7 @@
   import LocalCard        from '@/components/LocalCard.vue';
   import LocalInfo        from '@/components/LocalInfo.vue';
   import AtividadesTable from '@/components/AtividadesTable.vue';
+  import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
   import { localService, calculateAverageRating, mapActivities, mapFacilities } from '@/services/api.js';
 
   // Ícones SVG como string
@@ -96,6 +105,10 @@
   const detalhesVisiveis = ref(false);
   const localSelecionado = ref({});
 
+  // Modal de confirmação de exclusão
+  const modalConfirmarExclusao = ref(false);
+  const localParaExcluir = ref(null);
+
   function abrirDetalhes(local) {
     localSelecionado.value = local;
     detalhesVisiveis.value = true;
@@ -112,8 +125,35 @@
   }
   
   function onDeleteLocal() {
-    // lógica para deletar local
-    alert('Excluir local!');
+    localParaExcluir.value = localSelecionado.value;
+    modalConfirmarExclusao.value = true;
+  }
+
+  async function confirmarExclusao() {
+    try {
+      const localId = localParaExcluir.value.id;
+      console.log('Tentando inativar local:', localId);
+      
+      const response = await localService.delete(localId);
+      console.log('Resposta da inativação:', response);
+      
+      if (response.success || response.status) {
+        modalConfirmarExclusao.value = false;
+        localParaExcluir.value = null;
+        alert('Local inativado com sucesso!');
+        
+        // Recarregar a lista de locais
+        await loadLocais();
+        
+        // Fechar o modal de detalhes
+        fecharDetalhes();
+      } else {
+        throw new Error(response.message || 'Erro desconhecido');
+      }
+    } catch (err) {
+      console.error('Erro ao inativar local:', err);
+      alert('Erro ao inativar local: ' + (err.message || 'Erro desconhecido'));
+    }
   }
 
   // Função para carregar locais da API
@@ -138,13 +178,9 @@
 
   // Função para mapear atividades de um local
   function mapActivitiesForLocal(local) {
-    if (!local.atividades || local.atividades.length === 0) {
-      return [];
-    }
-    
     return local.atividades.map(activity => ({
       name: activity.nome,
-      icon: activitiesIcons[activity.nome] || 'pi pi-star'
+      icon: activity.icone || 'pi pi-star' // Usar o ícone do backend
     }));
   }
 
@@ -200,6 +236,7 @@
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
+  color: black;
 }
 
 .loading-spinner {
@@ -210,6 +247,7 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
+  color: black;
 }
 
 @keyframes spin {
@@ -224,6 +262,7 @@
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
+  color: black;
 }
 
 .retry-button {

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Local;
+use App\Models\LocalAtividade;
+use App\Models\LocalInstalacao;
+use App\Models\Atividade;
+use App\Models\Instalacao;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreLocalRequest;
 use OpenApi\Annotations as OA;
@@ -67,7 +71,9 @@ use Illuminate\Support\Facades\Log;
  *             @OA\Property(property="capacidade_pessoas", type="integer"),
  *             @OA\Property(property="id_usuario_criacao", type="integer"),
  *             @OA\Property(property="id_usuario_alteracao", type="integer"),
- *             @OA\Property(property="ativo", type="boolean")
+ *             @OA\Property(property="ativo", type="boolean"),
+ *             @OA\Property(property="atividades", type="array", @OA\Items(type="integer"), description="IDs das atividades"),
+ *             @OA\Property(property="instalacoes", type="array", @OA\Items(type="integer"), description="IDs das instalações")
  *         )
  *     ),
  *     @OA\Response(
@@ -120,7 +126,9 @@ use Illuminate\Support\Facades\Log;
  *             @OA\Property(property="descricao", type="string"),
  *             @OA\Property(property="capacidade_pessoas", type="integer"),
  *             @OA\Property(property="id_usuario_alteracao", type="integer"),
- *             @OA\Property(property="ativo", type="boolean")
+ *             @OA\Property(property="ativo", type="boolean"),
+ *             @OA\Property(property="atividades", type="array", @OA\Items(type="integer"), description="IDs das atividades"),
+ *             @OA\Property(property="instalacoes", type="array", @OA\Items(type="integer"), description="IDs das instalações")
  *         )
  *     ),
  *     @OA\Response(
@@ -219,6 +227,8 @@ class LocalController extends Controller
     public function store(StoreLocalRequest $request)
     {
         $validated = $request->validated();
+        
+        Log::info('Dados recebidos para criar local:', $validated);
 
         $local = Local::create([
             "nome" => $validated["nome"],
@@ -232,6 +242,38 @@ class LocalController extends Controller
             "id_usuario_alteracao" => $validated["id_usuario_alteracao"] ?? null,
             "ativo" => $validated["ativo"],
         ]);
+
+        Log::info('Local criado com ID: ' . $local->id);
+
+        // Associar atividades se fornecidas
+        if (isset($validated['atividades']) && is_array($validated['atividades'])) {
+            Log::info('Associando atividades:', $validated['atividades']);
+            foreach ($validated['atividades'] as $atividadeId) {
+                // Verificar se a atividade existe
+                $atividade = Atividade::find($atividadeId);
+                if ($atividade) {
+                    $local->atividades()->attach($atividadeId, ['ativo' => true]);
+                    Log::info('Atividade ' . $atividadeId . ' associada com sucesso');
+                } else {
+                    Log::warning('Atividade ' . $atividadeId . ' não encontrada');
+                }
+            }
+        }
+
+        // Associar instalações se fornecidas
+        if (isset($validated['instalacoes']) && is_array($validated['instalacoes'])) {
+            Log::info('Associando instalações:', $validated['instalacoes']);
+            foreach ($validated['instalacoes'] as $instalacaoId) {
+                // Verificar se a instalação existe
+                $instalacao = Instalacao::find($instalacaoId);
+                if ($instalacao) {
+                    $local->instalacoes()->attach($instalacaoId, ['ativo' => true]);
+                    Log::info('Instalação ' . $instalacaoId . ' associada com sucesso');
+                } else {
+                    Log::warning('Instalação ' . $instalacaoId . ' não encontrada');
+                }
+            }
+        }
 
         return response()->json([
             'status'  => true,
@@ -297,6 +339,54 @@ class LocalController extends Controller
             "ativo" => $validated["ativo"],
         ]);
 
+        // Atualizar atividades se fornecidas
+        if (isset($validated['atividades'])) {
+            // Desativar todas as associações existentes
+            $local->atividades()->updateExistingPivot($local->atividades->pluck('id')->toArray(), ['ativo' => false]);
+            
+            // Ativar apenas as atividades fornecidas
+            if (is_array($validated['atividades'])) {
+                foreach ($validated['atividades'] as $atividadeId) {
+                    // Verificar se a associação já existe
+                    $existingAssociation = LocalAtividade::where('id_local', $local->id)
+                                                         ->where('id_atividade', $atividadeId)
+                                                         ->first();
+                    if ($existingAssociation) {
+                        // Se existe, apenas ativar
+                        $existingAssociation->ativo = true;
+                        $existingAssociation->save();
+                    } else {
+                        // Se não existe, criar nova
+                        $local->atividades()->attach($atividadeId, ['ativo' => true]);
+                    }
+                }
+            }
+        }
+
+        // Atualizar instalações se fornecidas
+        if (isset($validated['instalacoes'])) {
+            // Desativar todas as associações existentes
+            $local->instalacoes()->updateExistingPivot($local->instalacoes->pluck('id')->toArray(), ['ativo' => false]);
+            
+            // Ativar apenas as instalações fornecidas
+            if (is_array($validated['instalacoes'])) {
+                foreach ($validated['instalacoes'] as $instalacaoId) {
+                    // Verificar se a associação já existe
+                    $existingAssociation = LocalInstalacao::where('id_local', $local->id)
+                                                          ->where('id_instalacao', $instalacaoId)
+                                                          ->first();
+                    if ($existingAssociation) {
+                        // Se existe, apenas ativar
+                        $existingAssociation->ativo = true;
+                        $existingAssociation->save();
+                    } else {
+                        // Se não existe, criar nova
+                        $local->instalacoes()->attach($instalacaoId, ['ativo' => true]);
+                    }
+                }
+            }
+        }
+
         return response()->json([
             'status'  => true,
             'message' => "Local atualizado com sucesso!",
@@ -309,12 +399,87 @@ class LocalController extends Controller
      */
     public function destroy(Local $local)
     {
-        // Exclusão lógica em cascata - desativa o local e todos os registros relacionados
-        $local->desativarComCascata();
+        try {
+            Log::info('Tentando inativar local', ['local_id' => $local->id, 'nome' => $local->nome]);
+            
+            // Exclusão lógica - apenas desativa o local
+            $local->ativo = false;
+            $local->save();
+            
+            Log::info('Local inativado com sucesso', ['local_id' => $local->id]);
+            
+            return response()->json([
+                'status'  => true,
+                'message' => "Local desativado com sucesso!"
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Erro ao inativar local', [
+                'local_id' => $local->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => false,
+                'message' => 'Erro ao inativar local: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
+    /**
+     * Busca as imagens de um local
+     */
+    public function getImages(Local $local)
+    {
+        $imagens = $local->imagens()->where('ativo', true)->get();
+        
         return response()->json([
-            'status'  => true,
-            'message' => "Local e todos os registros relacionados desativados com sucesso!"
-        ], 200);
+            'success' => true,
+            'imagens' => $imagens->map(function($imagem) {
+                return [
+                    'id' => $imagem->id,
+                    'url' => url("/api/local-imagem/{$imagem->id}")
+                ];
+            })
+        ]);
+    }
+
+    /**
+     * Busca as atividades de um local
+     */
+    public function getActivities(Local $local)
+    {
+        $atividades = $local->atividades()->where('ativo', true)->get();
+        
+        return response()->json([
+            'success' => true,
+            'atividades' => $atividades
+        ]);
+    }
+
+    /**
+     * Busca as instalações de um local
+     */
+    public function getFacilities(Local $local)
+    {
+        $instalacoes = $local->instalacoes()->where('ativo', true)->get();
+        
+        return response()->json([
+            'success' => true,
+            'instalacoes' => $instalacoes
+        ]);
+    }
+
+    /**
+     * Busca as avaliações de um local
+     */
+    public function getRatings(Local $local)
+    {
+        $avaliacoes = $local->avaliacoes()->where('ativo', true)->with('usuario')->get();
+        
+        return response()->json([
+            'success' => true,
+            'avaliacoes' => $avaliacoes
+        ]);
     }
 }
