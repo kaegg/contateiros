@@ -16,9 +16,9 @@
 </template>
 
 <script setup>
-import PesquisarLocal from '@/components/PesquisarLocal.vue';
-import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
-import InstalacoesTable from '@/components/InstalacoesTable.vue';
+import PesquisarLocal   from '@/components/Layout/PesquisarLocal.vue';
+import DialogCadastro   from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
+import InstalacoesTable from '@/components/Instalacoes/InstalacoesTable.vue';
 import { ref } from 'vue';
 
 const modalCadastroVisivel = ref(false);

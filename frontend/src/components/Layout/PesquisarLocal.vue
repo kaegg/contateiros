@@ -48,17 +48,17 @@
 
 <script setup lang="ts">
     import { ref, defineEmits } from "vue";
-    import { useRouter }   from "vue-router";
-    import Menubar         from 'primevue/menubar';
-    import Select          from 'primevue/select';
-    import InputText       from 'primevue/inputtext';
-    import IconField       from 'primevue/iconfield';
-    import InputIcon       from 'primevue/inputicon';
-    import InputGroup      from 'primevue/inputgroup';
-    import InputGroupAddon from 'primevue/inputgroupaddon';
-    import Button          from 'primevue/button';
-    import Menu            from 'primevue/menu';
-    import DialogCadastroLocal from './DialogCadastro/DialogCadastroLocal.vue';
+    import { useRouter }        from "vue-router";
+    import Menubar              from 'primevue/menubar';
+    import Select               from 'primevue/select';
+    import InputText            from 'primevue/inputtext';
+    import IconField            from 'primevue/iconfield';
+    import InputIcon            from 'primevue/inputicon';
+    import InputGroup           from 'primevue/inputgroup';
+    import InputGroupAddon      from 'primevue/inputgroupaddon';
+    import Button               from 'primevue/button';
+    import Menu                 from 'primevue/menu';
+    import DialogCadastroLocal  from '@/components/Dialogs/DialogCadastroLocal/DialogCadastroLocal.vue';
 
     const opcaoBusca  = ref("Todos");    
     const opcoesBusca = ref([

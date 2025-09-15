@@ -204,7 +204,7 @@ import InputNumber               from 'primevue/inputnumber';
 import Textarea                  from 'primevue/textarea';
 import FloatLabel                from 'primevue/floatlabel';
 import Button                    from 'primevue/button';
-import ImportarIcone             from './ImportarIcone.vue';
+import ImportarIcone             from '@/components/Dialogs/DialogCadastro/ImportarIcone.vue';
 import Dropdown                  from 'primevue/dropdown';
 import { useToast }              from 'primevue/usetoast';
 

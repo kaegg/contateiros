@@ -86,8 +86,8 @@
 
 <script setup lang="ts">
   import { ref, computed, watch, onMounted, reactive } from 'vue'
-  import ModalEditarUsuario from '@/components/ModalEditarUsuario.vue';
-  import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
+  import ModalEditarUsuario from '@/components/Usuario/ModalEditarUsuario.vue';
+  import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
   import axios                        from 'axios';
   import { useToast }                 from 'primevue/usetoast';
   import Toast from 'primevue/toast';

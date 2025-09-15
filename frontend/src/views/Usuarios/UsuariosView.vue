@@ -16,10 +16,10 @@
 </template>
 
 <script setup>
-import PesquisarLocal from '@/components/PesquisarLocal.vue';
-import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
-import UsuariosTable from '@/components/UsuariosTable.vue';
-import { ref } from 'vue';
+import PesquisarLocal from '@/components/Layout/PesquisarLocal.vue';
+import DialogCadastro from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
+import UsuariosTable  from '@/components/Usuario/UsuariosTable.vue';
+import { ref }        from 'vue';
 
 const modalCadastroVisivel = ref(false);
 const tipoCadastro = ref('atividade');
