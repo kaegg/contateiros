@@ -132,7 +132,7 @@ import Button from 'primevue/button';
 import FloatLabel from 'primevue/floatlabel';
 import { Form } from '@primevue/forms';
 import Toast from 'primevue/toast';
-import Loader from '@/components/Loader.vue';
+import Loader from '@/components/Layout/Loader.vue';
 import Message from 'primevue/message';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';

@@ -133,14 +133,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted, computed }    from 'vue';
+import { useRoute, useRouter }         from 'vue-router';
 import { localService, ratingService } from '@/services/api.js';
-import LocalInfo from '@/components/LocalInfo.vue';
-import DialogCadastroLocal from '@/components/DialogCadastro/DialogCadastroLocal.vue';
-import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
-import PesquisarLocal from '@/components/PesquisarLocal.vue';
-import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
+import LocalInfo                       from '@/components/Home/LocalInfo/LocalInfo.vue';
+import DialogCadastroLocal             from '@/components/Dialogs/DialogCadastroLocal/DialogCadastroLocal.vue';
+import ModalConfirmacaoInativacao      from '@/components/Layout/ModalConfirmacaoInativacao.vue';
+import PesquisarLocal                  from '@/components/Layout/PesquisarLocal.vue';
+import DialogCadastro                  from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
 
 // Tipos
 interface Local {

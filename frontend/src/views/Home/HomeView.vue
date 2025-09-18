@@ -65,14 +65,13 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from "vue";
-  import PesquisarLocal   from '@/components/PesquisarLocal.vue';
-  import FiltroAtividades from '@/components/FiltroAtividades.vue';
-  import DialogCadastro   from '@/components/DialogCadastro/DialogCadastro.vue';
-  import LocalCard        from '@/components/LocalCard.vue';
-  import LocalInfo        from '@/components/LocalInfo.vue';
-  import AtividadesTable from '@/components/AtividadesTable.vue';
-  import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
+  import { ref, onMounted }         from "vue";
+  import PesquisarLocal             from '@/components/Layout/PesquisarLocal.vue';
+  import FiltroAtividades           from '@/components/Home/FiltroAtividades/FiltroAtividades.vue';
+  import DialogCadastro             from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
+  import LocalCard                  from '@/components/Home/LocalCard/LocalCard.vue';
+  import LocalInfo                  from '@/components/Home/LocalInfo/LocalInfo.vue';
+  import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
   import { localService, calculateAverageRating, mapActivities, mapFacilities } from '@/services/api.js';
 
   // Ícones SVG como string

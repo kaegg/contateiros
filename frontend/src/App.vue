@@ -1,7 +1,8 @@
 <!-- App.vue -->
 <script setup lang="ts">
   import { RouterView } from 'vue-router'
-  import HeaderExt from '@/components/HeaderExt.vue';
+  import HeaderExt      from '@/components/Layout/HeaderExt.vue';
+  import FooterExt      from '@/components/Layout/FooterExt.vue';
 </script>
 
 <template>
@@ -12,6 +13,10 @@
   <main>
     <RouterView />
   </main>
+
+  <footer>
+    <FooterExt/>
+  </footer>
 </template>
 
 <style scoped>

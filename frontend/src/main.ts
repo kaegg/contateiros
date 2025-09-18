@@ -10,7 +10,7 @@ import PrimeVue     from 'primevue/config';
 import Aura         from '@primeuix/themes/aura';
 import ToastService from 'primevue/toastservice';
 import Toast        from 'primevue/toast';
-import Loader       from '@/components/Loader.vue';
+import Loader       from '@/components/Layout/Loader.vue';
 
 const app = createApp(App)
 

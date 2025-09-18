@@ -1,19 +1,19 @@
 <template>
   <div class="atividades-table-container">
-    <h1 class="logs-title">Instalações</h1>
+    <h1 class="logs-title">Atividades</h1>
     <DialogCadastro
       v-if="showEditDialog"
       :visible="showEditDialog"
-      tipo="instalacao"
-      titulo="Editar instalação"
-      :dados-edicao="instalacaoParaEditar"
+      tipo="atividade"
+      titulo="Editar atividade"
+      :dados-edicao="atividadeParaEditar"
       @update:visible="showEditDialog = $event"
-      @editado="onInstalacaoEditada"
+      @editado="onAtividadeEditada"
     />
     <ModalConfirmacaoInativacao
       :visible="showDeleteDialog"
-      titulo="Inativar instalação"
-      :texto="`Tem certeza que quer inativar a instalação '${instalacaoParaExcluir?.nome}'`"
+      titulo="Inativar atividade"
+      :texto="`Tem certeza que quer inativar a atividade '${atividadeParaExcluir?.nome}'`"
       @confirmar="confirmarExclusao"
       @cancelar="showDeleteDialog = false"
     />
@@ -24,45 +24,52 @@
           <select v-model="rowsPerPage" class="rows-dropdown">
             <option v-for="opt in [10, 20, 50]" :key="opt" :value="opt">{{ opt }}</option>
           </select>
-          Instalações
+          Atividades
         </label>
         <input
           v-model="search"
           class="search-bar"
           type="text"
-          placeholder="Pesquisar Instalações..."
+          placeholder="Pesquisar Atividades..."
         />
       </div>
     </div>
     <table class="atividades-table">
       <thead>
         <tr>
-          <th>Código Instalação</th>
-          <th>Instalação</th>
+          <th>Código Atividade</th>
+          <th>Ícone</th>
+          <th>Atividade</th>
           <th>Status</th>
           <th>Ação</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="instalacao in paginatedInstalacoes" :key="instalacao.codigo">
-          <td>{{ instalacao.codigo }}</td>
-          <td>{{ instalacao.nome }}</td>
+        <tr v-for="atividade in paginatedAtividades" :key="atividade.codigo">
+          <td>{{ atividade.codigo }}</td>
           <td>
-            <span :class="['status', instalacao.status === 'Ativo' ? 'ativo' : 'inativo']">
-              {{ instalacao.status }}
+            <span class="icone-wrapper">
+              <img :src="atividade.icone" class="atividade-icone" v-if="atividade.icone.startsWith('data:') || atividade.icone.startsWith('http')" />
+              <i :class="['atividade-icone', atividade.icone]" v-else />
+            </span>
+          </td>
+          <td>{{ atividade.nome }}</td>
+          <td>
+            <span :class="['status', atividade.status === 'Ativo' ? 'ativo' : 'inativo']">
+              {{ atividade.status }}
             </span>
           </td>
           <td>
-            <button class="action-btn edit" title="Editar" @click="openEditDialog(instalacao)">
+            <button class="action-btn edit" title="Editar" @click="openEditDialog(atividade)">
               <svg width="18" height="18" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M4 13.5V16h2.5l7.1-7.1-2.5-2.5L4 13.5z"/><path d="M14.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 2.5 2.5 1.1-1.1z"/></svg>
             </button>
-            <button class="action-btn delete" title="Excluir" @click="openDeleteDialog(instalacao)">
+            <button class="action-btn delete" title="Excluir" @click="openDeleteDialog(atividade)">
               <svg width="18" height="18" fill="none" stroke="#EF4444" stroke-width="2"><rect x="3" y="6" width="12" height="9" rx="2"/><path d="M8 9v3M10 9v3M5 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="paginatedInstalacoes.length === 0">
-          <td colspan="4" class="no-results">Nenhuma instalação encontrada.</td>
+        <tr v-if="paginatedAtividades.length === 0">
+          <td colspan="5" class="no-results">Nenhuma atividade encontrada.</td>
         </tr>
       </tbody>
     </table>
@@ -80,95 +87,89 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import DialogCadastro from '@/components/DialogCadastro/DialogCadastro.vue';
-import ModalConfirmacaoInativacao from '@/components/ModalConfirmacaoInativacao.vue';
-import { onMounted } from 'vue'
-import axios from 'axios'
-import { useToast } from 'primevue/usetoast'
+import { ref, computed, watch }   from 'vue'
+import DialogCadastro             from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
+import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
+import { onMounted }              from 'vue'
+import axios                      from 'axios'
+import { useToast }               from 'primevue/usetoast'
 
-const instalacoes = ref([])
+const atividades = ref([])
 const toast = useToast()
 
-async function buscarInstalacoes() {
+async function buscarAtividades() {
   try {
-    const response = await axios.get('http://localhost:8000/api/instalacao')
-    const data = response.data.instalacoes
-    instalacoes.value = data.map(i => ({
-      id: i.id,
-      codigo: i.codigo,
-      nome: i.nome,
-      status: i.ativo ? 'Ativo' : 'Inativo'
+    const response = await axios.get('http://localhost:8000/api/atividade')
+    const data = response.data.atividades
+    atividades.value = data.map(a => ({
+      id: a.id,
+      codigo: a.codigo,
+      nome: a.nome,
+      status: a.ativo ? 'Ativo' : 'Inativo',
+      icone: a.icone
     }))
   } catch (error) {
-    console.error('Erro ao buscar instalações:', error)
-    toast.add({
-      severity: 'error',
-      summary: 'Erro ao carregar instalações',
-      detail: 'Não foi possível carregar a lista de instalações.',
-      life: 3000
-    })
+    console.error('Erro ao buscar atividades:', error)
   }
 }
 
-onMounted(buscarInstalacoes)
-
+onMounted(buscarAtividades);
 const search = ref('')
 const rowsPerPage = ref(10)
 const currentPage = ref(1)
 const showEditDialog = ref(false);
 const showDeleteDialog = ref(false);
-const instalacaoParaExcluir = ref(null);
-const instalacaoParaEditar = ref(null);
+const atividadeParaExcluir = ref(null);
+const atividadeParaEditar = ref(null);
 
-function onInstalacaoEditada() {
-  buscarInstalacoes();
+function onAtividadeEditada() {
+  buscarAtividades();
 }
 
-function openEditDialog(instalacao) {
-  instalacaoParaEditar.value = { ...instalacao, id: instalacao.id };
+function openEditDialog(atividade) {
+  atividadeParaEditar.value = { ...atividade, id: atividade.id };
   showEditDialog.value = true;
 }
-function openDeleteDialog(instalacao) {
-  instalacaoParaExcluir.value = { ...instalacao, id: instalacao.id };
+function openDeleteDialog(atividade) {
+  atividadeParaExcluir.value = { ...atividade, id: atividade.id };
   showDeleteDialog.value = true;
 }
 async function confirmarExclusao() {
-  if (!instalacaoParaExcluir.value) return;
+  if (!atividadeParaExcluir.value) return;
   showDeleteDialog.value = false;
   try {
-    await axios.delete(`http://localhost:8000/api/instalacao/${instalacaoParaExcluir.value.id}`);
+    await axios.delete(`http://localhost:8000/api/atividade/${atividadeParaExcluir.value.id}`);
     toast.add({
       severity: 'success',
-      summary: 'Instalação inativada com sucesso!',
+      summary: 'Atividade inativada com sucesso!',
       life: 3000
     });
-    await buscarInstalacoes();
+    await buscarAtividades();
   } catch (error) {
     toast.add({
       severity: 'error',
-      summary: 'Erro ao inativar instalação',
+      summary: 'Erro ao inativar atividade',
       detail: error.message,
       life: 3000
     });
   }
 }
 
-const filteredInstalacoes = computed(() => {
-  if (!search.value) return instalacoes.value
-  return instalacoes.value.filter(i =>
-    i.codigo.toLowerCase().includes(search.value.toLowerCase()) ||
-    i.nome.toLowerCase().includes(search.value.toLowerCase())
+const filteredAtividades = computed(() => {
+  if (!search.value) return atividades.value
+  return atividades.value.filter(a =>
+    a.codigo.toLowerCase().includes(search.value.toLowerCase()) ||
+    a.nome.toLowerCase().includes(search.value.toLowerCase())
   )
 })
 
 const totalPages = computed(() =>
-  Math.ceil(filteredInstalacoes.value.length / rowsPerPage.value) || 1
+  Math.ceil(filteredAtividades.value.length / rowsPerPage.value) || 1
 )
 
-const paginatedInstalacoes = computed(() => {
+const paginatedAtividades = computed(() => {
   const start = (currentPage.value - 1) * rowsPerPage.value
-  return filteredInstalacoes.value.slice(start, start + rowsPerPage.value)
+  return filteredAtividades.value.slice(start, start + rowsPerPage.value)
 })
 
 watch([search, rowsPerPage], () => {
