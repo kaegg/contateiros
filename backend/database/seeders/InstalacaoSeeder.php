@@ -31,12 +31,12 @@ class InstalacaoSeeder extends Seeder
             ],
             [
                 'nome' => 'Rede Celular',
-                'codigo' => 'REDE_CELULAR',
+                'codigo' => 'REDE_CEL',
                 'ativo' => true,
             ],
             [
                 'nome' => 'Estacionamento',
-                'codigo' => 'ESTACIONAMENTO',
+                'codigo' => 'ESTACIONA',
                 'ativo' => true,
             ],
             [
@@ -51,7 +51,7 @@ class InstalacaoSeeder extends Seeder
             ],
             [
                 'nome' => 'Churrasqueira',
-                'codigo' => 'CHURRASQUEIRA',
+                'codigo' => 'CHURRAS',
                 'ativo' => true,
             ],
             [
@@ -61,17 +61,17 @@ class InstalacaoSeeder extends Seeder
             ],
             [
                 'nome' => 'Quadra Esportiva',
-                'codigo' => 'QUADRA_ESPORTIVA',
+                'codigo' => 'QUADRA',
                 'ativo' => true,
             ],
             [
                 'nome' => 'Campo de Futebol',
-                'codigo' => 'CAMPO_FUTEBOL',
+                'codigo' => 'CAMPO_FUT',
                 'ativo' => true,
             ],
             [
                 'nome' => 'Sala de Reunião',
-                'codigo' => 'SALA_REUNIAO',
+                'codigo' => 'SALA_REUNI',
                 'ativo' => true,
             ],
             [
@@ -86,7 +86,7 @@ class InstalacaoSeeder extends Seeder
             ],
             [
                 'nome' => 'Sistema de Som',
-                'codigo' => 'SISTEMA_SOM',
+                'codigo' => 'SIS_SOM',
                 'ativo' => true,
             ],
             [
@@ -101,12 +101,12 @@ class InstalacaoSeeder extends Seeder
             ],
             [
                 'nome' => 'Primeiros Socorros',
-                'codigo' => 'PRIMEIROS_SOCORROS',
+                'codigo' => 'SOS',
                 'ativo' => true,
             ],
             [
                 'nome' => 'Área de Camping',
-                'codigo' => 'AREA_CAMPING',
+                'codigo' => 'CAMPING',
                 'ativo' => true,
             ],
             [
