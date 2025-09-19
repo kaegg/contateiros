@@ -1,4 +1,8 @@
 <template>
+  <Toast />
+
+  <Loader :isLoading="isLoading" />
+
   <div class="atividades-table-container">
     <h1 class="logs-title">Instalações</h1>
     <DialogCadastro
@@ -13,8 +17,10 @@
     <ModalConfirmacaoInativacao
       :visible="showDeleteDialog"
       titulo="Inativar instalação"
-      :texto="`Tem certeza que quer inativar a instalação '${instalacaoParaExcluir?.nome}'`"
-      @confirmar="confirmarExclusao"
+      :texto="instalacaoParaExcluir?.status
+            ? `Tem certeza que quer ${instalacaoParaExcluir.status === 'Ativo' ? 'inativar' : 'ativar'} a instalação '${instalacaoParaExcluir.nome}'?`
+            : ''"
+      @confirmar="toggleAtivo"
       @cancelar="showDeleteDialog = false"
     />
     <div class="table-header">
@@ -52,13 +58,20 @@
               {{ instalacao.status }}
             </span>
           </td>
-          <td>
+          <td class="actions">
             <button class="action-btn edit" title="Editar" @click="openEditDialog(instalacao)">
               <svg width="18" height="18" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M4 13.5V16h2.5l7.1-7.1-2.5-2.5L4 13.5z"/><path d="M14.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 2.5 2.5 1.1-1.1z"/></svg>
             </button>
-            <button class="action-btn delete" title="Excluir" @click="openDeleteDialog(instalacao)">
-              <svg width="18" height="18" fill="none" stroke="#EF4444" stroke-width="2"><rect x="3" y="6" width="12" height="9" rx="2"/><path d="M8 9v3M10 9v3M5 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>
-            </button>
+            <ToggleSwitch 
+              :model-value="instalacao.status === 'Ativo'" 
+              :on-label="'Ativo'" 
+              :off-label="'Inativo'" 
+              @click="(e) => handleSwitchClick(e, instalacao)"
+            >
+              <template #handle="{ checked }">
+                <i :class="['!text-xs pi', { 'pi-check': checked, 'pi-times': !checked }]" />
+              </template>
+            </ToggleSwitch>
           </td>
         </tr>
         <tr v-if="paginatedInstalacoes.length === 0">
@@ -86,11 +99,16 @@ import { onMounted }              from 'vue'
 import DialogCadastro             from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
 import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
 import axios                      from 'axios'
+import ToggleSwitch               from 'primevue/toggleswitch';
 
-const instalacoes = ref([])
-const toast = useToast()
+const instalacoes = ref([]);
+const toast       = useToast();
+const isLoading   = ref(false);
+
 
 async function buscarInstalacoes() {
+  isLoading.value = true;
+
   try {
     const response = await axios.get('http://localhost:8000/api/instalacao')
     const data = response.data.instalacoes
@@ -108,6 +126,8 @@ async function buscarInstalacoes() {
       detail: 'Não foi possível carregar a lista de instalações.',
       life: 3000
     })
+  } finally {
+    isLoading.value = false;
   }
 }
 
@@ -129,20 +149,38 @@ function openEditDialog(instalacao) {
   instalacaoParaEditar.value = { ...instalacao, id: instalacao.id };
   showEditDialog.value = true;
 }
-function openDeleteDialog(instalacao) {
+
+function handleSwitchClick(event, instalacao) {
   instalacaoParaExcluir.value = { ...instalacao, id: instalacao.id };
-  showDeleteDialog.value = true;
+  showDeleteDialog.value     = true;
+
+  event.preventDefault();
 }
-async function confirmarExclusao() {
+
+async function toggleAtivo() {
   if (!instalacaoParaExcluir.value) return;
+
   showDeleteDialog.value = false;
+
   try {
-    await axios.delete(`http://localhost:8000/api/instalacao/${instalacaoParaExcluir.value.id}`);
+    let response;
+
+    if(instalacaoParaExcluir.value.status == "Ativo"){
+
+      response = await axios.delete(`http://localhost:8000/api/instalacao/${instalacaoParaExcluir.value.id}`);
+
+    }else{
+
+      response = await axios.put(`http://localhost:8000/api/instalacao/ativar/${instalacaoParaExcluir.value.id}`);
+
+    }
+
     toast.add({
       severity: 'success',
-      summary: 'Instalação inativada com sucesso!',
+      summary: response.data.message,
       life: 3000
     });
+
     await buscarInstalacoes();
   } catch (error) {
     toast.add({
@@ -186,18 +224,21 @@ watch([search, rowsPerPage], () => {
   max-width: 1100px;
   margin: 0 auto;
 }
+
 .table-header {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   padding: 0 32px 16px 32px;
 }
+
 .table-controls {
   display: flex;
   align-items: center;
   gap: 16px;
   width: 100%;
 }
+
 .mostrar-label {
   font-size: 14px;
   color: #222;
@@ -205,6 +246,7 @@ watch([search, rowsPerPage], () => {
   align-items: center;
   gap: 6px;
 }
+
 .rows-dropdown {
   margin: 0 6px;
   padding: 2px 8px;
@@ -212,6 +254,7 @@ watch([search, rowsPerPage], () => {
   border: 1px solid #ddd;
   font-size: 14px;
 }
+
 .search-bar {
   flex: 1;
   padding: 6px 12px;
@@ -221,40 +264,48 @@ watch([search, rowsPerPage], () => {
   background: #f7f7f7;
   color: #222;
 }
+
 .search-bar::placeholder {
   color: #888;
   opacity: 1;
 }
+
 .atividades-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin: 0;
 }
+
 .atividades-table th, .atividades-table td {
   padding: 14px 0;
   text-align: center;
   font-size: 15px;
   color: #222;
 }
+
 .atividades-table th {
   background: #f5f5f5;
   font-weight: 600;
   color: #222;
   border-bottom: 2px solid #e5e5e5;
 }
+
 .atividades-table tbody tr {
   background: #fff;
   border-bottom: 1px solid #f0f0f0;
 }
+
 .atividades-table tbody tr:last-child {
   border-bottom: none;
 }
+
 .icone-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .status {
   display: inline-block;
   padding: 2px 12px;
@@ -262,14 +313,17 @@ watch([search, rowsPerPage], () => {
   font-size: 13px;
   font-weight: 500;
 }
+
 .status.ativo {
   background: #e7fbe9;
   color: #22c55e;
 }
+
 .status.inativo {
   background: #fde7e7;
   color: #ef4444;
 }
+
 .action-btn {
   background: none;
   border: none;
@@ -280,18 +334,22 @@ watch([search, rowsPerPage], () => {
   transition: background 0.2s;
   border-radius: 4px;
 }
+
 .action-btn.edit:hover {
   background: #e0f2fe;
 }
+
 .action-btn.delete:hover {
   background: #fee2e2;
 }
+
 .no-results {
   text-align: center;
   color: #888;
   font-size: 15px;
   padding: 24px 0;
 }
+
 .pagination {
   display: flex;
   justify-content: flex-start;
@@ -299,6 +357,7 @@ watch([search, rowsPerPage], () => {
   gap: 4px;
   padding: 24px 0 32px 32px;
 }
+
 .pagination button {
   background: #f5f5f5;
   border: none;
@@ -310,20 +369,24 @@ watch([search, rowsPerPage], () => {
   color: #222;
   transition: background 0.2s;
 }
+
 .pagination button.active,
 .pagination button:hover:not(:disabled) {
   background: #d1fae5;
   color: #059669;
 }
+
 .pagination button:disabled {
   background: #eee;
   color: #bbb;
   cursor: not-allowed;
 }
+
 .atividade-icone {
   font-size: 1.7rem;
   color: #22c55e;
 }
+
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -333,6 +396,7 @@ watch([search, rowsPerPage], () => {
   justify-content: center;
   z-index: 1000;
 }
+
 .modal-confirm {
   background: #fff;
   border-radius: 16px;
@@ -342,6 +406,7 @@ watch([search, rowsPerPage], () => {
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   position: relative;
 }
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -351,11 +416,13 @@ watch([search, rowsPerPage], () => {
   color: #222;
   margin-bottom: 1.5rem;
 }
+
 .modal-title {
   font-weight: bold;
   font-size: 1.25rem;
   color: #222;
 }
+
 .modal-close {
   background: none;
   border: none;
@@ -364,16 +431,19 @@ watch([search, rowsPerPage], () => {
   cursor: pointer;
   margin-left: 12px;
 }
+
 .modal-body {
   color: #222;
   margin-bottom: 2rem;
   font-size: 1.1rem;
 }
+
 .modal-actions {
   display: flex;
   gap: 16px;
   justify-content: flex-start;
 }
+
 .btn-sim {
   background: #22c55e;
   color: #fff;
@@ -385,9 +455,11 @@ watch([search, rowsPerPage], () => {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .btn-sim:hover {
   background: #16a34a;
 }
+
 .btn-cancelar {
   background: #fff;
   color: #222;
@@ -399,10 +471,12 @@ watch([search, rowsPerPage], () => {
   cursor: pointer;
   transition: background 0.2s, border 0.2s;
 }
+
 .btn-cancelar:hover {
   background: #f3f4f6;
   border-color: #a3a3a3;
 }
+
 .logs-title {
   text-align: center;
   font-size: 2.3rem;
@@ -410,5 +484,29 @@ watch([search, rowsPerPage], () => {
   margin-bottom: 18px;
   margin-top: 0;
   color: #222;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+::v-deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider) {
+  background: var(--color-green-500) !important;
+}
+
+::v-deep(.p-toggleswitch-slider) {
+  background: var(--color-red-500) !important;
+}
+
+::v-deep(.p-toggleswitch-handle) {
+  background: var(--color-black) !important;
+  color: var(--color-red-500) !important;
+}
+
+::v-deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-handle ) {
+  background: var(--p-toggleswitch-handle-checked-background)!important;
+  color: var(--p-toggleswitch-handle-checked-color)!important;
 }
 </style> 

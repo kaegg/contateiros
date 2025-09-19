@@ -101,7 +101,7 @@ class AtividadeController extends Controller
      */
     public function index()
     {
-        $atividades = Atividade::where('ativo', true)->get();
+        $atividades = Atividade::get();
         
         if ($atividades->isEmpty()) {
             
@@ -215,6 +215,21 @@ class AtividadeController extends Controller
         return response()->json([
             'status'  => true,
             'message' => "Atividade inativada com sucesso!",
+            'atividade' => $atividade
+        ], 200);
+    }
+
+    /**
+     * Activate the specified resource from storage.
+     */
+    public function ativar(Atividade $atividade)
+    {
+        $atividade->ativo = true;
+        $atividade->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Atividade ativada com sucesso!",
             'atividade' => $atividade
         ], 200);
     }

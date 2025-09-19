@@ -14,7 +14,7 @@ class InstalacaoController extends Controller
      */
     public function index()
     {
-        $instalacoes = Instalacao::where('ativo', true)->get();
+        $instalacoes = Instalacao::get();
         
         // Log para debug
         Log::info('Instalações encontradas: ' . $instalacoes->count());
@@ -108,6 +108,20 @@ class InstalacaoController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Instalação inativada com sucesso!'
+        ]);
+    }
+
+    /**
+     * Activate the specified resource from storage.
+     */
+    public function ativar(Instalacao $instalacao)
+    {
+        $instalacao->ativo = true;
+        $instalacao->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Instalação ativada com sucesso!'
         ]);
     }
 }
