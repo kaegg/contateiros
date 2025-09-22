@@ -1,0 +1,23 @@
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+::v-deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider) {
+  background: var(--color-green-500) !important;
+}
+
+::v-deep(.p-toggleswitch-slider) {
+  background: var(--color-red-500) !important;
+}
+
+::v-deep(.p-toggleswitch-handle) {
+  background: var(--color-black) !important;
+  color: var(--color-red-500) !important;
+}
+
+::v-deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-handle ) {
+  background: var(--p-toggleswitch-handle-checked-background)!important;
+  color: var(--p-toggleswitch-handle-checked-color)!important;
+}

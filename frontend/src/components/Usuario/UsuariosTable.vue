@@ -1,6 +1,9 @@
 <template>
   <div class="atividades-table-container">
     <Toast />
+
+    <Loader :isLoading="isLoading" />
+
     <h1 class="logs-title">Usuários</h1>
     <ModalEditarUsuario
       v-if="showEditModal"
@@ -13,8 +16,10 @@
     />
     <ModalConfirmacaoInativacao
       :visible="showDeleteModal"
-      titulo="Inativar usuário"
-      :texto="`Tem certeza que quer inativar o usuário '${usuarioParaInativar?.nome}'?`"
+      titulo="Ativar/Inativar usuário"
+      :texto="usuarioParaInativar
+            ? `Tem certeza que quer ${usuarioParaInativar.ativo ? 'inativar' : 'ativar'} o usuário '${usuarioParaInativar.nome}'?`
+            : ''"
       @confirmar="inativarUsuario"
       @cancelar="closeDeleteModal"
     />
@@ -57,13 +62,21 @@
               {{ usuario.ativo ? 'Ativo' : 'Inativo' }}
             </span>
           </td>
-          <td>
+          <td class="actions">
             <button class="action-btn edit" title="Editar" @click="openEditModal(usuario)">
               <svg width="18" height="18" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M4 13.5V16h2.5l7.1-7.1-2.5-2.5L4 13.5z"/><path d="M14.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 2.5 2.5 1.1-1.1z"/></svg>
             </button>
-            <button class="action-btn delete" title="Inativar" @click="openDeleteModal(usuario)">
-              <svg width="18" height="18" fill="none" stroke="#EF4444" stroke-width="2"><rect x="3" y="6" width="12" height="9" rx="2"/><path d="M8 9v3M10 9v3M5 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>
-            </button>
+
+            <ToggleSwitch 
+              :model-value="usuario.ativo === 1" 
+              :on-label="'Ativo'" 
+              :off-label="'Inativo'" 
+              @click="(e:any) => handleSwitchClick(e, usuario)"
+            >
+              <template #handle="{ checked }">
+                <i :class="['!text-xs pi', { 'pi-check': checked, 'pi-times': !checked }]" />
+              </template>
+            </ToggleSwitch>
           </td>
         </tr>
         <tr v-if="paginatedUsuarios.length === 0">
@@ -85,79 +98,79 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, watch, onMounted, reactive } from 'vue'
-  import ModalEditarUsuario from '@/components/Usuario/ModalEditarUsuario.vue';
-  import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
-  import axios                        from 'axios';
-  import { useToast }                 from 'primevue/usetoast';
-  import Toast from 'primevue/toast';
+import { ref, computed, watch, onMounted, reactive } from 'vue'
+import ModalEditarUsuario         from '@/components/Usuario/ModalEditarUsuario.vue';
+import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
+import axios                      from 'axios';
+import { useToast }               from 'primevue/usetoast';
+import Toast                      from 'primevue/toast';
+import ToggleSwitch               from 'primevue/toggleswitch';
 
-  type Usuario = {
-    id: number;
-    nome: string;
-    usuario: string;
-    email: string;
-    telefone: string;
-    id_funcao: number;
-    id_secao: number;
-    ativo: boolean;
-    funcao: Funcao;
-    secao: Secao;
-    created_at: string;
-    updated_at: string;
-    // add other fields as needed
-  };
+type Usuario = {
+  id: number;
+  nome: string;
+  usuario: string;
+  email: string;
+  telefone: string;
+  id_funcao: number;
+  id_secao: number;
+  ativo: boolean;
+  funcao: Funcao;
+  secao: Secao;
+  created_at: string;
+  updated_at: string;
+  // add other fields as needed
+};
 
-  type Funcao = {
-    id: number;
-    nome: string;
-  };
+type Funcao = {
+  id: number;
+  nome: string;
+};
 
-  type Secao = {
-    id: number;
-    nome: string;
-  };
+type Secao = {
+  id: number;
+  nome: string;
+};
 
-  const toast      = useToast();
-  const users      = ref<Usuario[]>([]);
-  const funcoes    = ref<Funcao[]>([]);
-  const secoes     = ref<Secao[]>([]);
-  const isLoading  = ref(false);
-  const formErrors = ref<{ [key: string]: string[] }>({});
-  const isInativando = ref(false);
+const toast      = useToast();
+const users      = ref<Usuario[]>([]);
+const funcoes    = ref<Funcao[]>([]);
+const secoes     = ref<Secao[]>([]);
+const isLoading  = ref(false);
+// const formErrors = ref<{ [key: string]: string[] }>({});
+const isInativando = ref(false);
 
-  const buscarUsuarios = async () => {
-    isLoading.value = true;
-    try {
-      const usersResp = await axios.get("http://localhost:8000/api/usuario");
-      if (usersResp.data.success) {
-        users.value = usersResp.data.usuarios;
-        funcoes.value = [
-          ...new Map(users.value.map(u => [u.funcao.id, u.funcao])).values()
-        ];
-        secoes.value = [
-          ...new Map(users.value.map(u => [u.secao.id, u.secao])).values()
-        ];
-      } else {
-        toast.add({
-          severity: 'error',
-          summary : 'Ocorreu um erro ao buscar usuários.',
-          life    : 3000
-        });
-      }
-    } catch (error) {
+const buscarUsuarios = async () => {
+  isLoading.value = true;
+  try {
+    const usersResp = await axios.get("http://localhost:8000/api/usuario");
+    if (usersResp.data.success) {
+      users.value = usersResp.data.usuarios;
+      funcoes.value = [
+        ...new Map(users.value.map(u => [u.funcao.id, u.funcao])).values()
+      ];
+      secoes.value = [
+        ...new Map(users.value.map(u => [u.secao.id, u.secao])).values()
+      ];
+    } else {
       toast.add({
         severity: 'error',
-        summary : 'Ocorreu um erro ao buscar dados de usuários, por favor recarregue a página e tente novamente.',
-        life    : 4000
+        summary : 'Ocorreu um erro ao buscar usuários.',
+        life    : 3000 
       });
-    } finally {
-      isLoading.value = false;
     }
-  };
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary : 'Ocorreu um erro ao buscar dados de usuários, por favor recarregue a página e tente novamente.',
+      life    : 4000
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-  onMounted(buscarUsuarios);
-
+onMounted(buscarUsuarios);
 
 const search = ref('')
 const rowsPerPage = ref(10)
@@ -173,6 +186,7 @@ function openEditModal(usuario: Usuario) {
   usuarioSelecionado.value = { ...usuario, funcao: funcaoSelecionada, secao: secaoSelecionada };
   showEditModal.value = true;
 }
+
 function closeEditModal(val: boolean) {
   showEditModal.value = val;
   if (!val) usuarioSelecionado.value = null;
@@ -181,10 +195,13 @@ function closeEditModal(val: boolean) {
 const showDeleteModal = ref(false);
 const usuarioParaInativar = ref<Usuario | null>(null);
 
-function openDeleteModal(usuario: Usuario) {
-  usuarioParaInativar.value = usuario;
-  showDeleteModal.value = true;
+function handleSwitchClick(event:any, usuario: Usuario) {
+  usuarioParaInativar.value = { ...usuario, id: usuario.id };
+  showDeleteModal.value     = true;
+
+  event.preventDefault();
 }
+
 function closeDeleteModal() {
   showDeleteModal.value = false;
   usuarioParaInativar.value = null;
@@ -192,14 +209,28 @@ function closeDeleteModal() {
 
 async function inativarUsuario() {
   if (!usuarioParaInativar.value) return;
+
   isInativando.value = true;
+
   try {
-    await axios.delete(`http://localhost:8000/api/usuario/${usuarioParaInativar.value.id}`);
+    let response;
+
+    if(usuarioParaInativar.value.ativo) {
+
+      response = await axios.delete(`http://localhost:8000/api/usuario/${usuarioParaInativar.value.id}`);
+      
+    } else {
+     
+      response = await axios.put(`http://localhost:8000/api/usuario/ativar/${usuarioParaInativar.value.id}`);
+
+    }
+
     toast.add({
       severity: 'success',
-      summary: 'Usuário inativado com sucesso!',
+      summary: response.data.message,
       life: 3000
     });
+    
     buscarUsuarios();
   } catch (error: any) {
     toast.add({
@@ -254,6 +285,8 @@ watch([search, rowsPerPage], () => {
 </script>
 
 <style scoped>
+@import '../../assets/css/gridSwitch.css';
+
 .atividades-table-container {
   background: #fff;
   border-radius: 8px;
