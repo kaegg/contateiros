@@ -20,6 +20,7 @@ Route::get("/usuario" , [UsuarioController::class, "index"]);
 Route::post("/usuario", [UsuarioController::class, "store"]);
 Route::put("/usuario/{usuario}", [UsuarioController::class, "update"]);
 Route::delete('/usuario/{usuario}', [UsuarioController::class, 'destroy']);
+Route::put('/usuario/ativar/{usuario}', [UsuarioController::class, 'ativar']);
 
 Route::get("/atividade", [AtividadeController::class, "index"]);
 Route::post("/atividade", [AtividadeController::class, "store"]);

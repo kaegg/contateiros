@@ -208,10 +208,17 @@ class UsuarioController extends Controller
     }
 
      /**
-     * Inactivate the specified resource from storage.
+     * Activate the specified resource from storage.
      */
-    public function inactivate(Usuario $usuario)
+    public function ativar(Usuario $usuario)
     {
-        //
+        $usuario->ativo = true;
+        $usuario->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => "Usuário ativado com sucesso!",
+            'usuario' => $usuario
+        ], 200);
     }
 }

@@ -16,7 +16,7 @@
     />
     <ModalConfirmacaoInativacao
       :visible="showDeleteDialog"
-      titulo="Inativar instalação"
+      titulo="Ativar/Inativar instalação"
       :texto="instalacaoParaExcluir?.status
             ? `Tem certeza que quer ${instalacaoParaExcluir.status === 'Ativo' ? 'inativar' : 'ativar'} a instalação '${instalacaoParaExcluir.nome}'?`
             : ''"
@@ -215,6 +215,8 @@ watch([search, rowsPerPage], () => {
 </script>
 
 <style scoped>
+@import '../../assets/css/gridSwitch.css';
+
 .atividades-table-container {
   background: #fff;
   border-radius: 8px;
@@ -484,29 +486,5 @@ watch([search, rowsPerPage], () => {
   margin-bottom: 18px;
   margin-top: 0;
   color: #222;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-::v-deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider) {
-  background: var(--color-green-500) !important;
-}
-
-::v-deep(.p-toggleswitch-slider) {
-  background: var(--color-red-500) !important;
-}
-
-::v-deep(.p-toggleswitch-handle) {
-  background: var(--color-black) !important;
-  color: var(--color-red-500) !important;
-}
-
-::v-deep(.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-handle ) {
-  background: var(--p-toggleswitch-handle-checked-background)!important;
-  color: var(--p-toggleswitch-handle-checked-color)!important;
 }
 </style> 
