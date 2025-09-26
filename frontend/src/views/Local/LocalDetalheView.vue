@@ -389,6 +389,7 @@ onMounted(() => {
   justify-content: center;
   min-height: 400px;
   gap: 16px;
+  color: #000
 }
 
 .loading-spinner {

@@ -101,6 +101,17 @@ npm run dev
 
 ---
 
+### 5. Rodar o projeto sem alternar entre pastas
+
+Para rodar o projeto inteiro sem a necessidade de alternar entre as pastas frontend e backend basta rodar os seguintes comandos dentro da pasta raíz do projeto
+
+```bash
+npm install --save-dev concurrently
+npm run dev:all
+```
+
+---
+
 ## Documentação da API
 
 Após iniciar o servidor backend, a documentação estará disponível em:

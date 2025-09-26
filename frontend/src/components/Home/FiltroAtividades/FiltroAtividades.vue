@@ -8,6 +8,10 @@
       class="custom-carousel"
       :showIndicators="false"
     >
+        <template #empty>
+          <span></span>
+        </template>
+
         <template #item="{ data }">
           <div
             class="flex flex-col items-center justify-center cursor-pointer mx-8 w-fit"
