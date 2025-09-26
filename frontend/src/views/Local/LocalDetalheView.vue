@@ -61,7 +61,7 @@
       <div class="local-detalhe-fotos" v-if="imagens.length > 0">
         <h3>Fotos do Local</h3>
         <div class="fotos-grid">
-          <img v-for="(imagem, idx) in imagens" :key="idx" :src="imagem.url" class="foto" />
+          <img v-for="(imagem, idx) in local.imagens" :key="idx" :src="imagem.imagem" class="foto" />
         </div>
       </div>
 
@@ -176,7 +176,7 @@ interface Local {
   }>;
   imagens?: Array<{
     id: number;
-    url: string;
+    imagem: string;
   }>;
   avaliacoes?: Array<{
     id: number;
