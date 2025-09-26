@@ -210,7 +210,8 @@ function closeDeleteModal() {
 async function inativarUsuario() {
   if (!usuarioParaInativar.value) return;
 
-  isInativando.value = true;
+  isInativando.value    = true;
+  showDeleteModal.value = true;
 
   try {
     let response;

@@ -4,7 +4,7 @@ import CadastroUsuario                    from '@/views/Usuarios/Cadastrar/Cadas
 import LocalDetalheView                   from '@/views/Local/LocalDetalheView.vue';
 import AtividadesView                     from '@/views/atividades/AtividadesView.vue';
 import InstalacoesView                    from '@/views/Instalacoes/InstalacoesView.vue';
-import LogsView                           from '@/views/Logs/LogsView.vue';
+import LogsView                           from '@/views/Log/LogsView.vue';
 import UsuariosView                       from '@/views/Usuarios/UsuariosView.vue';
 import PerfilView                         from '@/views/Usuarios/Perfil/PerfilView.vue';
 import LoginView                          from '@/views/Login/LoginView.vue';

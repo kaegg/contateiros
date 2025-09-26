@@ -23,8 +23,8 @@
       </li>
       <li><strong>Criador do cadastro:</strong> {{ creator }}</li>
     </ul>
-    <button class="whatsapp-btn" :href="whatsAppLink" target="_blank">
-      <span class="icon">💬</span> Chame agora
+    <button class="whatsapp-btn" @click="openWhatsApp">
+      <i class="pi pi-whatsapp icon"></i> Chame agora
     </button>
   </section>
 </template>
@@ -45,6 +45,10 @@ const whatsAppLink = computed(() => {
   const phone = props.ownerPhone.replace(/\D/g, '');
   return `https://wa.me/${phone}`;
 });
+
+function openWhatsApp() {
+  window.open(whatsAppLink.value, '_blank');
+}
 </script>
 
 <style scoped>
@@ -56,21 +60,25 @@ const whatsAppLink = computed(() => {
   max-width: 350px;
   color: #222;
 }
+
 .local-info__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
 }
+
 .local-info__header h2 {
   color: #222;
 }
+
 .local-info__title {
   font-size: 1.35rem;
   font-weight: 700;
   color: #222;
   margin-bottom: 0.5rem;
 }
+
 .local-info__actions button {
   background: none;
   border: none;
@@ -78,22 +86,27 @@ const whatsAppLink = computed(() => {
   margin-left: 0.5rem;
   font-size: 1.2rem;
 }
+
 .local-info__list {
   list-style: none;
   padding: 0;
   margin: 0 0 1.5rem 0;
   color: #222;
 }
+
 .local-info__list > li {
   margin-bottom: 0.5rem;
 }
+
 .local-info__list a {
   color: #219653;
   text-decoration: none;
 }
+
 .local-info__list a:hover {
   text-decoration: underline;
 }
+
 .whatsapp-btn {
   display: flex;
   align-items: center;
@@ -107,9 +120,11 @@ const whatsAppLink = computed(() => {
   text-decoration: none;
   transition: background 0.2s;
 }
+
 .whatsapp-btn:hover {
   background: #1ebe57;
 }
+
 .icon {
   margin-right: 0.5rem;
 }
