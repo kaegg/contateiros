@@ -1,0 +1,12 @@
+{
+  "name": "contateiros",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && php artisan serve",
+    "dev:all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
