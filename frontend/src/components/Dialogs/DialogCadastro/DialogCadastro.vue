@@ -41,7 +41,7 @@
   import { useToast }                      from 'primevue/usetoast';
   import Dialog                            from 'primevue/dialog';
   import FormCadastro                      from "./FormCadastro.vue";  
-  import axios                             from 'axios';
+  import axios                             from '@/services/axios';
 
 
   const props = defineProps({
@@ -89,13 +89,13 @@
           formData.append('icone', dados.icone);
         }
 
-        await axios.post("http://localhost:8000/api/atividade", formData, {
+        await axios.post("/atividade", formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           }
         });
       } else if (props.tipo === 'instalacao') {
-        await axios.post("http://localhost:8000/api/instalacao", dados);
+        await axios.post("/instalacao", dados);
       }
 
       sucessoCadastro.value = true;
@@ -142,7 +142,7 @@ async function editar(dados) {
       formData.append('icone', dados.icone);
     }
     await axios.put(
-      `http://localhost:8000/api/atividade/${props.dadosEdicao.id}`,
+      `/atividade/${props.dadosEdicao.id}`,
       formData,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );
@@ -173,7 +173,7 @@ async function editarInstalacao(dados) {
   isLoading.value = true;
   try {
     await axios.put(
-      `http://localhost:8000/api/instalacao/${props.dadosEdicao.id}`,
+      `/instalacao/${props.dadosEdicao.id}`,
       dados
     );
     toast.add({

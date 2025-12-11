@@ -1,2 +1,3 @@
 *.asta
 node_modules
+.env

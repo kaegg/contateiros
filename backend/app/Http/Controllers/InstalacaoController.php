@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInstalacaoRequest;
 use App\Models\Instalacao;
-use Illuminate\Http\Request;
+use App\Services\LogService;
 use Illuminate\Support\Facades\Log;
 
 class InstalacaoController extends Controller
@@ -54,6 +54,9 @@ class InstalacaoController extends Controller
             "ativo"  => $validated["ativo"],
         ]);
 
+        // Registrar log de criação
+        LogService::criacao('instalacao', $instalacao->id);
+
         return response()->json([
             'status'     => true,
             'message'    => "Função criada sucesso!",
@@ -90,6 +93,9 @@ class InstalacaoController extends Controller
             'ativo' => $validated['ativo'] ?? true,
         ]);
         
+        // Registrar log de edição
+        LogService::edicao('instalacao', $instalacao->id, 'dados', 'anterior', 'novo');
+        
         return response()->json([
             'success' => true,
             'message' => 'Instalação atualizada com sucesso!',
@@ -105,6 +111,9 @@ class InstalacaoController extends Controller
         $instalacao->ativo = false;
         $instalacao->save();
         
+        // Registrar log de inativação
+        LogService::inativacao('instalacao', $instalacao->id);
+        
         return response()->json([
             'success' => true,
             'message' => 'Instalação inativada com sucesso!'
@@ -118,6 +127,9 @@ class InstalacaoController extends Controller
     {
         $instalacao->ativo = true;
         $instalacao->save();
+
+        // Registrar log de ativação
+        LogService::ativacao('instalacao', $instalacao->id);
 
         return response()->json([
             'success' => true,

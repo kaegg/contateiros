@@ -6,6 +6,7 @@ export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
   const defaultOptions = {
+    credentials: "include",
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

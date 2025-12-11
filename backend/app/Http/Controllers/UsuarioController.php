@@ -157,7 +157,19 @@ class UsuarioController extends Controller
      */
     public function show(Usuario $usuario)
     {
-        //
+        $usuarioComRelacoes = Usuario::with(['funcao', 'secao'])->find($usuario->id);
+
+        if (!$usuarioComRelacoes) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'usuario' => $usuarioComRelacoes
+        ]);
     }
 
     /**

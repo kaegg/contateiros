@@ -98,10 +98,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, reactive } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import ModalEditarUsuario         from '@/components/Usuario/ModalEditarUsuario.vue';
 import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
-import axios                      from 'axios';
+import axios                      from '@/services/axios';
 import { useToast }               from 'primevue/usetoast';
 import Toast                      from 'primevue/toast';
 import ToggleSwitch               from 'primevue/toggleswitch';
@@ -143,7 +143,7 @@ const isInativando = ref(false);
 const buscarUsuarios = async () => {
   isLoading.value = true;
   try {
-    const usersResp = await axios.get("http://localhost:8000/api/usuario");
+    const usersResp = await axios.get("/usuario");
     if (usersResp.data.success) {
       users.value = usersResp.data.usuarios;
       funcoes.value = [
@@ -218,11 +218,11 @@ async function inativarUsuario() {
 
     if(usuarioParaInativar.value.ativo) {
 
-      response = await axios.delete(`http://localhost:8000/api/usuario/${usuarioParaInativar.value.id}`);
+      response = await axios.delete(`/usuario/${usuarioParaInativar.value.id}`);
       
     } else {
      
-      response = await axios.put(`http://localhost:8000/api/usuario/ativar/${usuarioParaInativar.value.id}`);
+      response = await axios.put(`/usuario/ativar/${usuarioParaInativar.value.id}`);
 
     }
 

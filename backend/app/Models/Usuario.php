@@ -15,9 +15,17 @@ class Usuario extends Model
         "usuario",
         "email",
         "telefone",
+        "password",
         "id_funcao",
         "id_secao",
         "ativo",
+    ];
+
+    /**
+     * Hide sensitive fields from array / JSON conversion
+     */
+    protected $hidden = [
+        'password',
     ];
 
     public function funcao()

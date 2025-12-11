@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAtividadeRequest;
-use Illuminate\Support\Facades\Log;
+use App\Services\LogService;
 
 use App\Models\Atividade;
-use Illuminate\Http\Request;
 
 /**
  * @OA\Get(
@@ -150,6 +149,9 @@ class AtividadeController extends Controller
             "ativo"  => $validated["ativo"],
         ]);
 
+        // Registrar log de criação
+        LogService::criacao('atividade', $atividade->id);
+
         return response()->json([
             'status'  => true,
             'message' => "Atividade criada com sucesso!",
@@ -197,6 +199,9 @@ class AtividadeController extends Controller
             "ativo"  => $validated["ativo"],
         ]);
 
+        // Registrar log de edição
+        LogService::edicao('atividade', $atividade->id, 'dados', 'anterior', 'novo');
+
         return response()->json([
             'status'  => true,
             'message' => "Atividade atualizada com sucesso!",
@@ -212,6 +217,9 @@ class AtividadeController extends Controller
         $atividade->ativo = false;
         $atividade->save();
 
+        // Registrar log de inativação
+        LogService::inativacao('atividade', $atividade->id);
+
         return response()->json([
             'status'  => true,
             'message' => "Atividade inativada com sucesso!",
@@ -226,6 +234,9 @@ class AtividadeController extends Controller
     {
         $atividade->ativo = true;
         $atividade->save();
+
+        // Registrar log de ativação
+        LogService::ativacao('atividade', $atividade->id);
 
         return response()->json([
             'status'  => true,

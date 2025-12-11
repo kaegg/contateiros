@@ -1,4 +1,5 @@
 <template>
+  <Toast />
   <header class="bg-white border-b shadow-sm px-6 py-4 flex items-center justify-between" id="headerExt">
     <!-- Esquerda: Logo e título -->
     <div class="flex items-center gap-2 cursor-pointer" @click="$router.push({ name: 'home' })">
@@ -32,20 +33,43 @@
 
 <script setup lang="ts">
   import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useToast } from 'primevue/usetoast'
   import Menu from 'primevue/menu'
   import 'primeicons/primeicons.css'
-  import { useRouter } from 'vue-router'
 
   const router = useRouter();
+  const authStore = useAuthStore();
+  const toast = useToast();
   const menu = ref();
   
   const toggleMenu = (event: MouseEvent) => {
     menu.value.toggle(event)
   }
 
+  const handleLogout = async () => {
+    try {
+      await authStore.logout();
+      menu.value.hide();
+      toast.add({
+        severity: 'success',
+        summary: 'Logout realizado',
+        life: 3000
+      });
+      router.push({ name: 'login' });
+    } catch {
+      toast.add({
+        severity: 'error',
+        summary: 'Erro ao fazer logout',
+        life: 3000
+      });
+    }
+  }
+
   const items = ref([
     { label: 'Perfil', icon: 'pi pi-user', command: () => router.push({ name: 'perfil' }) },
-    { label: 'Sair'  , icon: 'pi pi-sign-out', command: () => console.log('Sair') }
+    { label: 'Sair'  , icon: 'pi pi-sign-out', command: () => handleLogout() }
   ]);
 </script>
 

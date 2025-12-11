@@ -105,7 +105,7 @@ import { ref, computed, watch }   from 'vue'
 import DialogCadastro             from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
 import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
 import { onMounted }              from 'vue'
-import axios                      from 'axios'
+import axios                      from '@/services/axios'
 import { useToast }               from 'primevue/usetoast'
 import ToggleSwitch               from 'primevue/toggleswitch';
 
@@ -117,7 +117,7 @@ async function buscarAtividades() {
   isLoading.value = true;
   
   try {
-    const response = await axios.get('http://localhost:8000/api/atividade')
+    const response = await axios.get('/atividade')
     const data = response.data.atividades
     atividades.value = data.map(a => ({
       id: a.id,

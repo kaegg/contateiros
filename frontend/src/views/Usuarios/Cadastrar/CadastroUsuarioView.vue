@@ -119,7 +119,7 @@
   import InputMask                    from 'primevue/inputmask';
   import Select                       from 'primevue/select';
   import Button                       from 'primevue/button';
-  import axios                        from 'axios';
+  import axios                        from '@/services/axios';
   import { Form }                     from '@primevue/forms';
   import { useToast }                 from 'primevue/usetoast';
   import { ref, onMounted, reactive } from 'vue';
@@ -145,8 +145,8 @@
     try {
       
       const [funcoesResp, secoesResp] = await Promise.all([
-        axios.get("http://localhost:8000/api/funcao"),
-        axios.get("http://localhost:8000/api/secao")
+        axios.get("/funcao"),
+        axios.get("/secao")
       ]);
 
       if (funcoesResp.data.success) {

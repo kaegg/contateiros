@@ -7,6 +7,7 @@ use App\Models\LocalAtividade;
 use App\Models\LocalInstalacao;
 use App\Models\Atividade;
 use App\Models\Instalacao;
+use App\Services\LogService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreLocalRequest;
 use OpenApi\Annotations as OA;
@@ -243,6 +244,9 @@ class LocalController extends Controller
             "ativo" => $validated["ativo"],
         ]);
 
+        // Registrar log de criação
+        LogService::criacao('local', $local->id);
+
         Log::info('Local criado com ID: ' . $local->id);
 
         // Associar atividades se fornecidas
@@ -339,6 +343,9 @@ class LocalController extends Controller
             "ativo" => $validated["ativo"],
         ]);
 
+        // Registrar log de edição
+        LogService::edicao('local', $local->id, 'dados', 'anterior', 'novo');
+
         // Atualizar atividades se fornecidas
         if (isset($validated['atividades'])) {
             // Desativar todas as associações existentes
@@ -404,6 +411,10 @@ class LocalController extends Controller
             
             // Exclusão lógica - apenas desativa o local
             $local->ativo = false;
+            $local->save();
+
+            // Registrar log de inativação
+            LogService::inativacao('local', $local->id);
             $local->save();
             
             Log::info('Local inativado com sucesso', ['local_id' => $local->id]);

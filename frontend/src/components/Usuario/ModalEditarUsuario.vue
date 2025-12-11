@@ -134,7 +134,7 @@ import { Form } from '@primevue/forms';
 import Toast from 'primevue/toast';
 import Loader from '@/components/Layout/Loader.vue';
 import Message from 'primevue/message';
-import axios from 'axios';
+import axios from '@/services/axios';
 import { useToast } from 'primevue/usetoast';
 
 const props = defineProps({

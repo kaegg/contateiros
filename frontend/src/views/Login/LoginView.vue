@@ -58,18 +58,17 @@
   import Loader                       from '@/components/Layout/Loader.vue';
   import InputText                    from 'primevue/inputtext';
   import FloatLabel                   from 'primevue/floatlabel';
-  import InputMask                    from 'primevue/inputmask';
-  import Select                       from 'primevue/select';
   import Button                       from 'primevue/button';
-  import axios                        from 'axios';
+  import axios                        from '@/services/axios';
   import { Form }                     from '@primevue/forms';
   import { useToast }                 from 'primevue/usetoast';
-  import { ref, onMounted, reactive } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { useAuthStore }             from '@/stores/authStore';
+  import { ref, reactive }            from 'vue';
+  import { useRouter }                from 'vue-router';
 
   const toast      = useToast();
-  const funcoes    = ref([]);
-  const secoes     = ref([]);
+  const router     = useRouter();
+  const authStore  = useAuthStore();
   const formErrors = ref<{ [key: string]: string[] }>({});
   const isLoading  = ref(false);
 
@@ -94,41 +93,43 @@
         senha    : form.senha
       }
       
-      await axios.post("http://localhost:8000/api/login", data);
+      // Send credentials (cookies) to backend so session cookie is set (HttpOnly)
+      const response = await axios.post("/login", data);
 
       formErrors.value = {};
 
       limparFormulario();
 
-      toast.add({
-        severity: 'success',
-        summary : 'Login realizado com sucesso!',
-        life    : 3000
-      });
+      // Set user in auth store
+      authStore.setUser(response.data);
 
-    } catch (error:any) {
+      // Redirect to home (protected area)
+      router.push({ name: 'home' });
 
-      if (error.response?.status === 422) {
+    } catch (err: unknown) {
 
-        const backendErrors   = error.response.data.errors;
+      // Validation errors
+      const error = err as { response?: { status: number; data: { errors?: Record<string, string[]> } }; message?: string };
+      if (error?.response?.status === 422) {
+
+        const backendErrors   = error.response?.data.errors || {};
         const errosFormulario: { [key: string]: { message: string }[] } = {};
 
         for (const field in backendErrors) {
-
-          errosFormulario[field] = backendErrors[field].map((msg: string) => ({
-            message: msg
-          }));
-
+          errosFormulario[field] = (backendErrors[field] || []).map((msg: string) => ({ message: msg }));
         }
 
         setErrors(errosFormulario);
 
+      } else if (error?.response?.status === 401) {
+        // Generic message: do not reveal whether the user exists
+        toast.add({ severity: 'error', summary: 'Credenciais inválidas.', life: 3000 });
       } else {
 
         toast.add({
           severity: 'error',
           summary: 'Erro ao realizar login',
-          detail: error.message,
+          detail: (error && typeof error === 'object' && 'message' in error ? (error as Record<string, unknown>).message : 'Erro desconhecido') as string,
           life: 3000
         });
 
@@ -157,7 +158,7 @@
       form.usuario  = "";
       form.senha    = "";
 
-    } catch (error) {
+    } catch {
       
       toast.add({
         severity: 'error',
@@ -168,7 +169,6 @@
     }
   }
 
-  const router = useRouter();
   function irParaRecuperarSenha() {
     router.push({ name: 'recuperar-senha' });
   }

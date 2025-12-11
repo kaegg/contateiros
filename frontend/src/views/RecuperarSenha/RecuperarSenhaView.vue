@@ -36,14 +36,9 @@
   import Loader                       from '@/components/Layout/Loader.vue';
   import InputText                    from 'primevue/inputtext';
   import FloatLabel                   from 'primevue/floatlabel';
-  import InputMask                    from 'primevue/inputmask';
-  import Select                       from 'primevue/select';
   import Button                       from 'primevue/button';
-  import axios                        from 'axios';
   import { Form }                     from '@primevue/forms';
-  import { useToast }                 from 'primevue/usetoast';
-  import { ref, onMounted, reactive } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { ref, reactive } from 'vue';
 
   const isLoading  = ref(false);
 

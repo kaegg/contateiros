@@ -1,4 +1,6 @@
 <template>
+  <Toast />
+
   <div class="local-detalhe-prototipo">
     <!-- Header de Pesquisa -->
     <PesquisarLocal @abrir-dialog="abrirDialog" />
@@ -136,6 +138,8 @@
 import { ref, onMounted, computed }    from 'vue';
 import { useRoute, useRouter }         from 'vue-router';
 import { localService, ratingService } from '@/services/api.js';
+import { useAuthStore }                from '@/stores/authStore';
+import { useToast }                    from 'primevue/usetoast';
 import LocalInfo                       from '@/components/Home/LocalInfo/LocalInfo.vue';
 import DialogCadastroLocal             from '@/components/Dialogs/DialogCadastroLocal/DialogCadastroLocal.vue';
 import ModalConfirmacaoInativacao      from '@/components/Layout/ModalConfirmacaoInativacao.vue';
@@ -206,11 +210,13 @@ interface Avaliacao {
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToast();
 const local = ref<Local | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const imagens = ref<Imagem[]>([]);
 const avaliacoes = ref<Avaliacao[]>([]);
+const authStore = useAuthStore();
 
 // Dados para novo comentário
 const novoComentarioTexto = ref('');
@@ -300,14 +306,16 @@ function onDeleteLocal() {
 async function confirmarExclusao() {
   try {
     const localId = route.params.id;
-    console.log('Tentando inativar local:', localId);
     
     const response = await localService.delete(localId);
-    console.log('Resposta da inativação:', response);
     
     if (response.success || response.status) {
       modalConfirmarExclusao.value = false;
-      alert('Local inativado com sucesso!');
+      toast.add({
+        severity: 'success',
+        summary: 'Local inativado com sucesso!',
+        life: 3000
+      });
       // Redirecionar para home
       router.push('/');
     } else {
@@ -315,7 +323,12 @@ async function confirmarExclusao() {
     }
   } catch (err: any) {
     console.error('Erro ao inativar local:', err);
-    alert('Erro ao inativar local: ' + (err.message || 'Erro desconhecido'));
+    toast.add({
+      severity: 'error',
+      summary: 'Erro ao inativar local',
+      detail: err.message || 'Erro desconhecido',
+      life: 3000
+    });
   }
 }
 
@@ -329,18 +342,36 @@ async function enviarComentario() {
     try {
       enviandoComentario.value = true;
       
-      const localId = route.params.id;
+      const localId = Number(route.params.id);
+
+      // Ensure user is authenticated and get current user
+      if (!authStore.isAuthenticated && !authStore.isLoading) {
+        await authStore.checkAuth();
+      }
+
+      if (!authStore.isAuthenticated || !authStore.user) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Autenticação necessária',
+          detail: 'Você precisa estar logado para enviar um comentário.',
+          life: 3000
+        });
+        return;
+      }
+
+      const userId = authStore.user.id;
+
       const ratingData = {
         id_local: localId,
         avaliacao: novoComentarioEstrelas.value,
         comentario: novoComentarioTexto.value,
-        id_usuario: 1, // TODO: Pegar ID do usuário logado
+        id_usuario: userId,
         ativo: true
       };
       
       const response = await ratingService.create(ratingData);
-      
-      if (response.success) {
+
+      if (response.status) {
         // Recarregar avaliações
         const avaliacoesResponse = await localService.getRatings(localId);
         if (avaliacoesResponse.success) {
@@ -351,18 +382,38 @@ async function enviarComentario() {
         novoComentarioTexto.value = '';
         novoComentarioEstrelas.value = 0;
         
-        alert('Avaliação enviada com sucesso!');
+        toast.add({
+          severity: 'success',
+          summary: 'Avaliação enviada',
+          detail: 'Sua avaliação foi enviada com sucesso!',
+          life: 3000
+        });
       } else {
-        alert('Erro ao enviar avaliação: ' + (response.message || 'Erro desconhecido'));
+        toast.add({
+          severity: 'error',
+          summary: 'Erro ao enviar avaliação',
+          detail: response.message || 'Erro desconhecido',
+          life: 3000
+        });
       }
     } catch (err: any) {
       console.error('Erro ao enviar comentário:', err);
-      alert('Erro ao enviar comentário: ' + (err.message || 'Erro desconhecido'));
+      toast.add({
+        severity: 'error',
+        summary: 'Erro ao enviar comentário',
+        detail: err.message || 'Erro desconhecido',
+        life: 3000
+      });
     } finally {
       enviandoComentario.value = false;
     }
   } else {
-    alert('Por favor, preencha todos os campos e selecione uma avaliação.');
+    toast.add({
+      severity: 'warn',
+      summary: 'Campos incompletos',
+      detail: 'Por favor, preencha todos os campos e selecione uma avaliação.',
+      life: 3000
+    });
   }
 }
 

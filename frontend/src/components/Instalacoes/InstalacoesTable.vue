@@ -98,7 +98,7 @@ import { useToast }               from 'primevue/usetoast'
 import { onMounted }              from 'vue'
 import DialogCadastro             from '@/components/Dialogs/DialogCadastro/DialogCadastro.vue';
 import ModalConfirmacaoInativacao from '@/components/Layout/ModalConfirmacaoInativacao.vue';
-import axios                      from 'axios'
+import axios                      from '@/services/axios'
 import ToggleSwitch               from 'primevue/toggleswitch';
 
 const instalacoes = ref([]);
@@ -110,7 +110,7 @@ async function buscarInstalacoes() {
   isLoading.value = true;
 
   try {
-    const response = await axios.get('http://localhost:8000/api/instalacao')
+    const response = await axios.get('/instalacao')
     const data = response.data.instalacoes
     instalacoes.value = data.map(i => ({
       id: i.id,
@@ -167,11 +167,11 @@ async function toggleAtivo() {
 
     if(instalacaoParaExcluir.value.status == "Ativo"){
 
-      response = await axios.delete(`http://localhost:8000/api/instalacao/${instalacaoParaExcluir.value.id}`);
+      response = await axios.delete(`/instalacao/${instalacaoParaExcluir.value.id}`);
 
     }else{
 
-      response = await axios.put(`http://localhost:8000/api/instalacao/ativar/${instalacaoParaExcluir.value.id}`);
+      response = await axios.put(`/instalacao/ativar/${instalacaoParaExcluir.value.id}`);
 
     }
 

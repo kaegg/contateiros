@@ -111,12 +111,14 @@
   import InputMask                    from 'primevue/inputmask';
   import Select                       from 'primevue/select';
   import Button                       from 'primevue/button';
-  import axios                        from 'axios';
+  import axios                        from '@/services/axios';
   import { Form }                     from '@primevue/forms';
   import { useToast }                 from 'primevue/usetoast';
+  import { useAuthStore }             from '@/stores/authStore';
   import { ref, onMounted, reactive } from 'vue';
 
   const toast      = useToast();
+  const authStore  = useAuthStore();
   const funcoes    = ref([]);
   const secoes     = ref([]);
   const formErrors = ref<{ [key: string]: string[] }>({});
@@ -136,9 +138,10 @@
 
     try {
       
-      const [funcoesResp, secoesResp] = await Promise.all([
-        axios.get("http://localhost:8000/api/funcao"),
-        axios.get("http://localhost:8000/api/secao")
+      const [funcoesResp, secoesResp, usuarioResp] = await Promise.all([
+        axios.get("/funcao"),
+        axios.get("/secao"),
+        axios.get(`/usuario/${authStore.user?.id}`)
       ]);
 
       if (funcoesResp.data.success) {
@@ -169,11 +172,32 @@
 
       }
 
-    } catch (error) {
+      if (usuarioResp.data.success) {
+        
+        const usuario = usuarioResp.data.usuario;
+        
+        form.usuario   = usuario.usuario;
+        form.nome      = usuario.nome;
+        form.email     = usuario.email;
+        form.telefone  = usuario.telefone;
+        form.funcao    = usuario.funcao;
+        form.secao     = usuario.secao;
+
+      } else {
+
+        toast.add({
+          severity: 'error',
+          summary : 'Erro ao carregar dados do usuário.',
+          life    : 3000
+        });
+
+      }
+
+    } catch {
 
       toast.add({
         severity: 'error',
-        summary : 'Ocorreu um erro ao buscar dadose de funções e seções, por favor recarregue a página e tente novamente.',
+        summary : 'Ocorreu um erro ao buscar dados, por favor recarregue a página e tente novamente.',
         life    : 4000
       });
 
@@ -199,11 +223,9 @@
         ativo    : true
       }
       
-      await axios.post("http://localhost:8000/api/usuario/:id", data);
+      await axios.put(`/usuario/${authStore.user?.id}`, data);
 
       formErrors.value = {};
-
-      limparFormulario();
 
       toast.add({
         severity: 'success',
@@ -211,6 +233,7 @@
         life    : 3000
       });
 
+      window.location.reload();
     } catch (error:any) {
 
       if (error.response?.status === 422) {
@@ -255,28 +278,6 @@
 
     formErrors.value = mapped;
   }
-
-  function limparFormulario(){
-    try {
-
-      form.usuario  = "";
-      form.nome     = "";
-      form.email    = "";
-      form.telefone = "";
-      form.funcao   = null;
-      form.secao    = null;
-
-    } catch (error) {
-      
-      toast.add({
-        severity: 'error',
-        summary : 'Ocorreu um erro ao limpar formulário de cadastro.',
-        life    : 4000
-      });
-
-    }
-  }
-
 </script>
 
 <style scoped>

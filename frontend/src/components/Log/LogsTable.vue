@@ -1,4 +1,5 @@
 <template>
+  <Loader :isLoading="isLoading" />
   <div class="atividades-table-container">
     <h1 class="logs-title">Logs de alteração</h1>
     <div class="table-header">
@@ -55,20 +56,44 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import axios from '@/services/axios';
+import { useToast } from 'primevue/usetoast';
 
-const logs = ref([
-  { id: 1, usuario: 'Raphael Ichiro', data: '13/05/2025 13:20', campo: '', tipo: 'Criação de local (Parque do Ingá)', tipoClass: 'tipo-criacao' },
-  { id: 2, usuario: 'Kauan Eguchi', data: '06/09/2025 14:29', campo: '', tipo: 'Criação de local (Circuito Inter Parques Curitiba)', tipoClass: 'tipo-criacao' },
-  { id: 3, usuario: 'Henrique Maeda', data: '25/09/2025 10:59', campo: '', tipo: 'Criação de local (Travessia Poços de Caldas)', tipoClass: 'tipo-criacao' },
-  { id: 4, usuario: 'Leonardo Almenara', data: '06/09/2025 09:01', campo: '', tipo: 'Criação de local (Travessia Lapinha Tabueiros)', tipoClass: 'tipo-criacao' },
-  { id: 5, usuario: 'Henrique Maeda', data: '25/09/2025 11:30', campo: 'Instalações', tipo: 'Edição de local (Travessia Poços de Caldas)', tipoClass: 'tipo-edicao' },
-  { id: 6, usuario: 'Admin', data: '06/09/2025 10:40', campo: '', tipo: 'Remoção de local (UEM - Campus Maringá)', tipoClass: 'tipo-remocao' },
-])
-
+const toast = useToast();
+const logs = ref([])
 const search = ref('')
 const rowsPerPage = ref(10)
 const currentPage = ref(1)
+const isLoading = ref(false)
+
+// Carregar logs da API no mount
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.get('/log');
+    if (response.data.success) {
+      logs.value = response.data.logs;
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'Erro ao carregar logs',
+        detail: response.data.message || 'Erro desconhecido',
+        life: 3000
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar logs:', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erro ao buscar logs',
+      detail: error.message || 'Erro desconhecido',
+      life: 3000
+    });
+  } finally {
+    isLoading.value = false;
+  }
+});
 
 const filteredLogs = computed(() => {
   if (!search.value) return logs.value

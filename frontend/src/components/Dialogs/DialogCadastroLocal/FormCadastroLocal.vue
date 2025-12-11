@@ -1,4 +1,6 @@
 <template>
+    <Toast />
+    <Loader :isLoading="isLoadingData" />
     <Form class="pt-4">
         <div class="grid grid-cols-2 gap-6">
             <!-- Nome do Local -->
@@ -73,11 +75,13 @@
         <!-- Número de Celular -->
         <div class="mt-8">
             <FloatLabel>
-                <InputText
-                    id="celular"
-                    v-model="form.celular"
+                <InputMask
                     name="celular"
-                    :placeholder="isCampoFocused.celular ? '+91 | Ex. 44 99999 99999' : undefined"
+                    mask="(99) 99999-9999"
+                    id="celular"
+                    :placeholder="isCampoFocused.celular ? 'Ex. 44 99999 99999' : undefined"
+                    v-model="form.celular"
+                    type="tel"
                     @focus="isCampoFocused.celular = true"
                     @blur="isCampoFocused.celular = false"
                     class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1"
@@ -198,15 +202,19 @@
 import { reactive, onMounted, ref, watch, computed } from 'vue';
 import { localService, activityService, facilityService } from '@/services/api.js';
 import { localImageService } from '@/services/localImageService.js';
+import { useAuthStore } from '@/stores/authStore';
 import { Form }                  from '@primevue/forms';
 import InputText                 from 'primevue/inputtext';
 import InputNumber               from 'primevue/inputnumber';
 import Textarea                  from 'primevue/textarea';
 import FloatLabel                from 'primevue/floatlabel';
 import Button                    from 'primevue/button';
+import Toast                     from 'primevue/toast';
 import ImportarIcone             from '@/components/Dialogs/DialogCadastro/ImportarIcone.vue';
 import Dropdown                  from 'primevue/dropdown';
+import InputMask                 from 'primevue/inputmask';
 import { useToast }              from 'primevue/usetoast';
+import Loader                    from '@/components/Layout/Loader.vue';
 
 // Props para modo de edição
 const props = defineProps<{
@@ -217,7 +225,9 @@ const props = defineProps<{
 const emit = defineEmits(['fechar-dialog']);
 
 const toast = useToast();
+const authStore = useAuthStore();
 const loading = ref(false);
+const isLoadingData = ref(true);
 const isEditMode = computed(() => props.modo === 'edicao');
 
 const form = reactive({
@@ -259,6 +269,7 @@ const estados = [
 
 // Carregar dados do backend
 onMounted(async () => {
+    isLoadingData.value = true;
     try {
         console.log('Carregando dados do backend...');
         
@@ -288,6 +299,8 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
+    } finally {
+        isLoadingData.value = false;
     }
 });
 
@@ -365,8 +378,8 @@ async function criarLocal() {
             nome_proprietario: form.proprietario,
             telefone_proprietario: form.celular,
             capacidade_pessoas: form.capacidade,
-            id_usuario_criacao: 1, // TODO: Pegar ID do usuário logado
-            id_usuario_alteracao: 1, // TODO: Pegar ID do usuário logado
+            id_usuario_criacao: authStore.user?.id,
+            id_usuario_alteracao: authStore.user?.id,
             ativo: true
         };
 
@@ -421,7 +434,7 @@ async function criarLocal() {
             }
         }
         
-        emit('fechar-dialog');
+      window.location.reload();
         
     } catch (error: any) {
         console.error('Erro ao salvar local:', error);
