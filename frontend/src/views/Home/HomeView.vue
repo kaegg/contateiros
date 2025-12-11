@@ -218,7 +218,7 @@
     
     // Se há imagens no backend, usar o endpoint para servir a primeira imagem
     const primeiraImagem = local.imagens[0];
-    return `http://localhost:8000/api/local-imagem/${primeiraImagem.id}`;
+    return primeiraImagem.imagem;
   }
 
   // Carregar locais quando o componente for montado
