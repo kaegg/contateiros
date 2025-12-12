@@ -2,7 +2,7 @@
 <script setup lang="ts">
   import { RouterView } from 'vue-router'
   import HeaderExt      from '@/components/Layout/HeaderExt.vue';
-  import FooterExt      from '@/components/Layout/FooterExt.vue';
+  // import FooterExt      from '@/components/Layout/FooterExt.vue';
 </script>
 
 <template>
@@ -15,7 +15,7 @@
   </main>
 
   <footer>
-    <FooterExt/>
+    <!-- <FooterExt/> -->
   </footer>
 </template>
 

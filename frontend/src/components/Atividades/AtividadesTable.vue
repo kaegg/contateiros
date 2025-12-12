@@ -147,6 +147,11 @@ function onAtividadeEditada() {
   buscarAtividades();
 }
 
+function openEditDialog(atividade) {
+  atividadeParaEditar.value = { ...atividade, id: atividade.id };
+  showEditDialog.value = true;
+}
+
 function handleSwitchClick(event, atividade) {
   atividadeParaExcluir.value = { ...atividade, id: atividade.id };
   showDeleteDialog.value     = true;

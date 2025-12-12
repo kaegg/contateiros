@@ -76,7 +76,7 @@
         <div class="flex-1">
           <!-- Função -->
           <FloatLabel>
-            <Select v-model="form.funcao" :options="funcoes" optionLabel="nome" placeholder="Selecione uma função" class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1" />
+            <Select disabled v-model="form.funcao" :options="funcoes" optionLabel="nome" placeholder="Selecione uma função" class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1" />
           
             <Message v-if="formErrors.id_funcao" severity="error" size="small" variant="simple" class="text-red-600">
               {{ formErrors.id_funcao[0] }}
@@ -87,7 +87,7 @@
         <div class="flex-1">
           <!-- Seção -->
           <FloatLabel>
-            <Select v-model="form.secao" :options="secoes" optionLabel="nome" placeholder="Selecione uma seção" class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1" />
+            <Select disabled v-model="form.secao" :options="secoes" optionLabel="nome" placeholder="Selecione uma seção" class="bg-transparent! border! border-black! text-black! rounded-xl! w-full! mt-1 mb-1" />
 
             <Message v-if="formErrors.id_secao" severity="error" size="small" variant="simple" class="text-red-600">
               {{ formErrors.id_secao[0] }}
